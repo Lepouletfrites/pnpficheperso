@@ -2,128 +2,202 @@
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js";
 import { getApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
 
-// Initialisation de Firestore à partir de l'application initialisée dans l'HTML
+// Initialisation de Firestore
+// L'application Firebase est déjà initialisée dans le bloc <script type="module"> de l'HTML.
 const app = getApp();
 const db = getFirestore(app);
 const COLLECTION_NAME = 'characters'; 
 
-let allInputs; // Déclaration globale
+let allInputs; 
 
-document.addEventListener('DOMContentLoaded', () => {
-    
-    // Récupérer tous les inputs une fois le DOM chargé
-    allInputs = document.querySelectorAll('input, textarea');
+// --- CONFIGURATION D'ID FONDAMENTALE (Correspondant à votre HTML) ---
+const ABILITIES_TAB_ID = 'tab-abilities'; // L'onglet "Capacités & Dons"
+const SPELLS_TAB_ID = 'tab-spells';     // L'onglet "Sorts"
+// --- FIN CONFIGURATION ---
 
-    const skillMap = {
-        'acro': 'dex', 'arca': 'int', 'ath': 'force', 'disc': 'dex',
-        'dres': 'sag', 'esca': 'dex', 'hist': 'int', 'inti': 'cha',
-        'inve': 'int', 'med': 'sag', 'nat': 'int', 'perc': 'sag',
-        'persp':'sag', 'persu':'cha', 'rel': 'int', 'rep': 'cha',
-        'sup': 'cha', 'sur': 'sag'
-    };
-    const stats = ['force', 'dex', 'con', 'int', 'sag', 'cha'];
+// Variables nécessaires aux calculs
+const skillMap = {
+    'acro': 'dex', 'arca': 'int', 'ath': 'force', 'disc': 'dex',
+    'dres': 'sag', 'esca': 'dex', 'hist': 'int', 'inti': 'cha',
+    'inve': 'int', 'med': 'sag', 'nat': 'int', 'perc': 'sag',
+    'persp':'sag', 'persu':'cha', 'rel': 'int', 'rep': 'cha',
+    'sup': 'cha', 'sur': 'sag'
+};
+const stats = ['force', 'dex', 'con', 'int', 'sag', 'cha'];
 
-    // --- MATHS & CALCULS AUTOMATIQUES ---
-    function getMod(score) { return Math.floor((score - 10) / 2); }
-    function formatBonus(val) { return (val >= 0 ? '+' : '') + val; }
 
-    function updateCalculations() {
-        const profBonus = parseInt(document.getElementById('bonus_maitrise').value) || 0;
+// --- MATHS & CALCULS AUTOMATIQUES (GLOBAL) ---
 
-        stats.forEach(stat => {
-            const valInput = document.getElementById('val_' + stat);
-            const score = parseInt(valInput.value) || 10;
-            const mod = getMod(score);
-            
-            const modSpan = document.getElementById('mod_' + stat);
-            if(modSpan) modSpan.textContent = formatBonus(mod);
+function getMod(score) { return Math.floor((score - 10) / 2); }
+function formatBonus(val) { return (val >= 0 ? '+' : '') + val; }
 
-            const saveCheck = document.getElementById('maitrise_' + stat);
-            const saveInput = document.getElementById('sauv_' + stat);
-            if(saveCheck && saveInput) {
-                let saveVal = mod + (saveCheck.checked ? profBonus : 0);
-                saveInput.value = saveVal; 
-            }
-        });
+window.updateCalculations = function() {
+    const profBonusEl = document.getElementById('bonus_maitrise');
+    const profBonus = parseInt(profBonusEl ? profBonusEl.value : 0) || 0;
 
-        for (const [skillCode, statCode] of Object.entries(skillMap)) {
-            const valInput = document.getElementById('val_' + statCode);
-            const score = parseInt(valInput.value) || 10;
-            const mod = getMod(score);
-            const skillCheck = document.getElementById('m_' + skillCode);
-            const skillValInput = document.getElementById('v_' + skillCode);
+    stats.forEach(stat => {
+        const valInput = document.getElementById('val_' + stat);
+        if(!valInput) return; 
 
-            if (skillCheck && skillValInput) {
-                let skillTotal = mod + (skillCheck.checked ? profBonus : 0);
-                skillValInput.value = skillTotal;
-            }
-        }
+        const score = parseInt(valInput.value) || 10;
+        const mod = getMod(score);
         
-        const percVal = parseInt(document.getElementById('v_perc').value) || 0;
-        const passPercInput = document.getElementById('perception_passive');
-        if(passPercInput) passPercInput.value = 10 + percVal;
-    }
+        const modSpan = document.getElementById('mod_' + stat);
+        if(modSpan) modSpan.textContent = formatBonus(mod);
 
-    // --- ÉCOUTEURS D'ÉVÉNEMENTS ---
-    
-    // Calculs automatiques
-    document.addEventListener('input', (e) => {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-            if (e.target.id === 'bonus_maitrise' || e.target.id.startsWith('val_') || 
-                e.target.id.startsWith('maitrise_') || e.target.id.startsWith('m_')) {
-                updateCalculations();
-            }
+        const saveCheck = document.getElementById('maitrise_' + stat);
+        const saveInput = document.getElementById('sauv_' + stat);
+        if(saveCheck && saveInput) {
+            let saveVal = mod + (saveCheck.checked ? profBonus : 0);
+            saveInput.value = saveVal; 
         }
     });
 
-    // Reset du formulaire
-    const resetBtn = document.getElementById('resetBtn');
-    if(resetBtn) {
-        resetBtn.addEventListener('click', () => {
-            if(confirm("Attention : Voulez-vous vraiment effacer la fiche locale actuelle ?")) {
-                allInputs.forEach(el => {
-                    if (el.type === 'checkbox') el.checked = false;
-                    else el.value = '';
-                });
-                // Valeurs par défaut des stats
-                document.getElementById('val_force').value = 10;
-                document.getElementById('val_dex').value = 10;
-                document.getElementById('val_con').value = 10;
-                document.getElementById('val_int').value = 10;
-                document.getElementById('val_sag').value = 10;
-                document.getElementById('val_cha').value = 10;
-                document.getElementById('niveau').value = 1;
-                document.getElementById('bonus_maitrise').value = 2;
-                
-                // Effacer les listes dynamiques
-                document.getElementById('abilities-container').innerHTML = '';
-                document.getElementById('spells-container').innerHTML = '';
+    for (const [skillCode, statCode] of Object.entries(skillMap)) {
+        const valInput = document.getElementById('val_' + statCode);
+        const score = parseInt(valInput ? valInput.value : 10) || 10;
+        const mod = getMod(score);
+        const skillCheck = document.getElementById('m_' + skillCode);
+        const skillValInput = document.getElementById('v_' + skillCode);
 
-                updateCalculations();
-            }
-        });
+        if (skillCheck && skillValInput) {
+            let skillTotal = mod + (skillCheck.checked ? profBonus : 0);
+            skillValInput.value = skillTotal;
+        }
+    }
+    
+    const percValInput = document.getElementById('v_perc');
+    const passPercInput = document.getElementById('perception_passive');
+
+    if (percValInput && passPercInput) {
+        const percVal = parseInt(percValInput.value) || 0;
+        passPercInput.value = 10 + percVal;
+    }
+}
+
+
+// --- GESTION DES CARTES (CAPACITÉS & SORTS) ---
+
+/**
+ * Ajuste la hauteur de la zone de texte pour s'adapter au contenu.
+ */
+window.autoResizeTextarea = function(el) {
+    if (el.offsetParent === null) {
+        // L'élément est masqué (onglet inactif). On ne peut pas calculer scrollHeight.
+        return; 
     }
 
-    // Fix pour l'ajout de cartes (solution au problème mobile/module)
-    const addAbilityBtn = document.getElementById('addAbilityBtn');
-    if (addAbilityBtn) {
-        addAbilityBtn.addEventListener('click', () => {
-            window.addAbilityCard();
-        });
+    el.style.height = 'auto'; 
+    el.style.height = (el.scrollHeight) + 'px'; 
+    
+    const content = el.closest('.ability-content');
+    if (content && content.style.maxHeight && content.style.maxHeight !== '0px') {
+        setTimeout(() => {
+            content.style.maxHeight = content.scrollHeight + 'px';
+        }, 0); 
     }
+};
 
-    const addSpellBtn = document.getElementById('addSpellBtn');
-    if (addSpellBtn) {
-        addSpellBtn.addEventListener('click', () => {
-            window.addSpellCard();
-        });
+// Fonction de bascule (toggle) pour ouvrir/fermer la carte
+window.toggleCollapse = function(headerElement) {
+    const card = headerElement.closest('.ability-card');
+    const content = card.querySelector('.ability-content');
+    
+    card.classList.toggle('collapsed');
+    
+    if (content.style.maxHeight && content.style.maxHeight !== '0px') {
+        content.style.maxHeight = '0px';
+    } else {
+        content.style.maxHeight = content.scrollHeight + "px";
+        
+        // Redimensionne la textarea si la carte s'ouvre
+        const textarea = content.querySelector('.ability-desc');
+        if (textarea) window.autoResizeTextarea(textarea);
     }
+}
 
-    updateCalculations(); 
-});
+/**
+ * Fonction centralisée pour redimensionner toutes les cartes.
+ * Appelé lors du chargement ou du changement d'onglet.
+ */
+window.resizeAllCards = function() {
+    document.querySelectorAll(`#${ABILITIES_TAB_ID} .ability-card, #${SPELLS_TAB_ID} .ability-card`).forEach(card => {
+        const descEl = card.querySelector('.ability-desc');
+        const content = card.querySelector('.ability-content');
+        
+        if (descEl) {
+            window.autoResizeTextarea(descEl);
+        }
+
+        if (content && !card.classList.contains('collapsed')) {
+            content.style.maxHeight = content.scrollHeight + 'px';
+        }
+    });
+}
 
 
-// --- FIREBASE : SAUVEGARDE & CHARGEMENT ---
+window.addAbilityCard = function(data = {}) {
+    const container = document.getElementById('abilities-container');
+    if (!container) return;
+    
+    const card = document.createElement('div');
+    
+    const isCollapsed = data.collapsed !== false; 
+    card.className = isCollapsed ? 'ability-card collapsed' : 'ability-card';
+    
+    // FIX LARGEUR: Nom 64%, Source 20%
+    card.innerHTML = `
+        <button class="remove-btn" onclick="this.closest('.ability-card').remove();">X</button>
+        <div class="ability-header" onclick="toggleCollapse(this)">
+            <input type="text" class="ability-name" placeholder="Nom de la capacité" value="${data.name || ''}" onclick="event.stopPropagation()" style="width: 64%;">
+            <input type="text" class="ability-source" placeholder="(Source)" value="${data.source || ''}" onclick="event.stopPropagation()" style="width: 20%;">
+            <i class="fas fa-chevron-down collapse-icon"></i>
+        </div>
+        <div class="ability-content">
+            <textarea class="ability-desc" placeholder="Description de l'effet..." oninput="autoResizeTextarea(this)">${data.desc || ''}</textarea>
+        </div>
+    `;
+    container.appendChild(card);
+    
+    // Redimensionnement immédiat
+    setTimeout(window.resizeAllCards, 10);
+}
+
+// Fonction de création de carte de Sort
+window.addSpellCard = function(data = {}) {
+    const container = document.getElementById('spells-container');
+    if (!container) return;
+
+    const card = document.createElement('div');
+    
+    const isCollapsed = data.collapsed !== false; 
+    card.className = isCollapsed ? 'ability-card collapsed' : 'ability-card';
+    
+    // FIX LARGEUR: Nom 64%, Niveau 10%
+    card.innerHTML = `
+        <button class="remove-btn" onclick="this.closest('.ability-card').remove();">X</button>
+        <div class="ability-header" onclick="toggleCollapse(this)">
+            <input type="text" class="ability-name" placeholder="Nom du Sort" value="${data.name || ''}" onclick="event.stopPropagation()" style="width: 64%;">
+            <input type="number" class="ability-source" placeholder="Niv." value="${data.level || ''}" style="width: 10%;" onclick="event.stopPropagation()">
+            <i class="fas fa-chevron-down collapse-icon"></i>
+        </div>
+        <div class="ability-content">
+            <textarea class="ability-desc" placeholder="Portée, Composantes, Effet..." oninput="autoResizeTextarea(this)">${data.desc || ''}</textarea>
+            <div style="font-size: 0.8em; margin-top: 5px;">
+                <label>Slots:</label>
+                <input type="number" class="spell-slots-max" placeholder="Max" value="${data.slotsMax || ''}" style="width: 30%;">
+                <input type="number" class="spell-slots-used" placeholder="Utilisés" value="${data.slotsUsed || ''}" style="width: 30%;">
+            </div>
+        </div>
+    `;
+    container.appendChild(card);
+    
+    // Redimensionnement immédiat
+    setTimeout(window.resizeAllCards, 10);
+}
+
+
+// --- FIREBASE : SAUVEGARDE & CHARGEMENT (FONCTIONS GLOBALES) ---
 
 window.saveData = async function() {
     const charIdInput = document.getElementById('char_id');
@@ -142,10 +216,9 @@ window.saveData = async function() {
         }
     });
 
-    // --- GESTION DES CAPACITÉS (LISTE DYNAMIQUE) ---
+    // Sauvegarde des Capacités
     const abilityCards = document.querySelectorAll('#abilities-container .ability-card');
     const abilitiesList = [];
-    
     abilityCards.forEach(card => {
         abilitiesList.push({
             name: card.querySelector('.ability-name').value,
@@ -156,10 +229,9 @@ window.saveData = async function() {
     });
     data.abilities_list = abilitiesList; 
 
-    // --- GESTION DES SORTS (LISTE DYNAMIQUE) ---
+    // Sauvegarde des Sorts
     const spellCards = document.querySelectorAll('#spells-container .ability-card');
     const spellsList = [];
-    
     spellCards.forEach(card => {
         spellsList.push({
             name: card.querySelector('.ability-name').value,
@@ -171,8 +243,6 @@ window.saveData = async function() {
         });
     });
     data.spells_list = spellsList; 
-
-    // --- FIN GESTION SORTS/CAPACITÉS ---
 
     try {
         const charRef = doc(db, COLLECTION_NAME, charId);
@@ -209,26 +279,36 @@ window.loadData = async function() {
                 }
             });
 
-            // --- GESTION DES CAPACITÉS (CHARGEMENT) ---
+            // Chargement des Capacités
             const abilityContainer = document.getElementById('abilities-container');
-            abilityContainer.innerHTML = ''; 
-            if (data.abilities_list && Array.isArray(data.abilities_list)) {
-                data.abilities_list.forEach(ability => {
-                    addAbilityCard(ability);
-                });
+            if (abilityContainer) {
+                abilityContainer.innerHTML = ''; 
+                if (data.abilities_list && Array.isArray(data.abilities_list)) {
+                    data.abilities_list.forEach(ability => {
+                        window.addAbilityCard(ability); 
+                    });
+                }
             }
 
-            // --- GESTION DES SORTS (CHARGEMENT) ---
+            // Chargement des Sorts
             const spellContainer = document.getElementById('spells-container');
-            spellContainer.innerHTML = ''; 
-            if (data.spells_list && Array.isArray(data.spells_list)) {
-                data.spells_list.forEach(spell => {
-                    addSpellCard(spell); 
-                });
+            if (spellContainer) {
+                spellContainer.innerHTML = ''; 
+                if (data.spells_list && Array.isArray(data.spells_list)) {
+                    data.spells_list.forEach(spell => {
+                        window.addSpellCard(spell); 
+                    });
+                }
             }
-            // --- FIN GESTION SORTS/CAPACITÉS ---
 
-            updateCalculations();
+            window.updateCalculations(); 
+            
+            // Redimensionnement immédiat si on est sur un des onglets dynamiques
+            if (document.getElementById(ABILITIES_TAB_ID)?.classList.contains('active') ||
+                document.getElementById(SPELLS_TAB_ID)?.classList.contains('active')) {
+                window.resizeAllCards(); 
+            }
+
             alert(`Fiche "${charId}" chargée avec succès !`);
         } else {
             alert(`Aucune fiche trouvée avec l'ID: ${charId}`);
@@ -240,95 +320,12 @@ window.loadData = async function() {
 }
 
 
-// --- GESTION DES CAPACITÉS/SORTS (Fonctions d'ajout et suppression & COLLAPSE) ---
-
-// Fonction de bascule (toggle) pour ouvrir/fermer la carte
-window.toggleCollapse = function(headerElement) {
-    const card = headerElement.closest('.ability-card');
-    const content = card.querySelector('.ability-content');
-    
-    card.classList.toggle('collapsed');
-    
-    // Gérer le max-height pour l'animation CSS
-    if (content.style.maxHeight && content.style.maxHeight !== '0px') {
-        content.style.maxHeight = '0px';
-    } else {
-        content.style.maxHeight = content.scrollHeight + "px";
-    }
-}
-
-
-window.addAbilityCard = function(data = {}) {
-    const container = document.getElementById('abilities-container');
-    
-    const card = document.createElement('div');
-    
-    const isCollapsed = data.collapsed !== false; 
-    card.className = isCollapsed ? 'ability-card collapsed' : 'ability-card';
-    
-    card.innerHTML = `
-        <button class="remove-btn" onclick="this.closest('.ability-card').remove();">X</button>
-        <div class="ability-header" onclick="toggleCollapse(this)">
-            <input type="text" class="ability-name" placeholder="Nom de la capacité" value="${data.name || ''}" onclick="event.stopPropagation()">
-            <input type="text" class="ability-source" placeholder="(Classe/Peuple)" value="${data.source || ''}" onclick="event.stopPropagation()">
-            <i class="fas fa-chevron-down collapse-icon"></i>
-        </div>
-        <div class="ability-content">
-            <textarea class="ability-desc" rows="3" placeholder="Description de l'effet...">${data.desc || ''}</textarea>
-        </div>
-    `;
-    container.appendChild(card);
-    
-    if (!isCollapsed) {
-        const content = card.querySelector('.ability-content');
-        setTimeout(() => {
-            content.style.maxHeight = content.scrollHeight + "px";
-        }, 0);
-    }
-}
-
-// Fonction de création de carte de Sort
-window.addSpellCard = function(data = {}) {
-    const container = document.getElementById('spells-container');
-    
-    const card = document.createElement('div');
-    
-    const isCollapsed = data.collapsed !== false; 
-    card.className = isCollapsed ? 'ability-card collapsed' : 'ability-card';
-    
-    card.innerHTML = `
-        <button class="remove-btn" onclick="this.closest('.ability-card').remove();">X</button>
-        <div class="ability-header" onclick="toggleCollapse(this)">
-            <input type="text" class="ability-name" placeholder="Nom du Sort" value="${data.name || ''}" onclick="event.stopPropagation()">
-            <input type="number" class="ability-source" placeholder="Niv." value="${data.level || ''}" style="width: 20%;" onclick="event.stopPropagation()">
-            <i class="fas fa-chevron-down collapse-icon"></i>
-        </div>
-        <div class="ability-content">
-            <textarea class="ability-desc" rows="3" placeholder="Portée, Composantes, Effet...">${data.desc || ''}</textarea>
-            <div style="font-size: 0.8em; margin-top: 5px;">
-                <label>Slots:</label>
-                <input type="number" class="spell-slots-max" placeholder="Max" value="${data.slotsMax || ''}" style="width: 30%;">
-                <input type="number" class="spell-slots-used" placeholder="Utilisés" value="${data.slotsUsed || ''}" style="width: 30%;">
-            </div>
-        </div>
-    `;
-    container.appendChild(card);
-    
-    if (!isCollapsed) {
-        const content = card.querySelector('.ability-content');
-        setTimeout(() => {
-            content.style.maxHeight = content.scrollHeight + "px";
-        }, 0);
-    }
-}
-
-
 // --- SYSTÈME DE DÉS (Modale) ---
 
 window.rollStat = function(statName) {
     const valInput = document.getElementById('val_' + statName);
     const score = parseInt(valInput.value) || 10;
-    const mod = Math.floor((score - 10) / 2);
+    const mod = getMod(score);
     const names = {
         'force': 'Force', 'dex': 'Dextérité', 'con': 'Constitution',
         'int': 'Intelligence', 'sag': 'Sagesse', 'cha': 'Charisme'
@@ -355,16 +352,16 @@ function launchModal(title, mod) {
     const totalBox = document.getElementById('valTotal');
     critMsg.className = 'crit-msg'; 
     critMsg.textContent = '';
-    totalBox.style.color = '#9ece6a';
+    totalBox.style.color = 'inherit'; 
 
     if (dieRoll === 20) {
         critMsg.textContent = "RÉUSSITE CRITIQUE !";
         critMsg.classList.add('crit-success');
-        totalBox.style.color = '#e0af68';
+        totalBox.style.color = '#e0af68'; 
     } else if (dieRoll === 1) {
         critMsg.textContent = "ÉCHEC CRITIQUE !";
         critMsg.classList.add('crit-fail');
-        totalBox.style.color = '#f7768e';
+        totalBox.style.color = '#f7768e'; 
     }
 
     document.getElementById('diceModal').style.display = 'flex';
@@ -381,8 +378,81 @@ window.onclick = function(event) {
 
 // Navigation Onglets
 window.openTab = function(id, btn) {
+    // Désactive tous les onglets et boutons
     document.querySelectorAll('.tab-content').forEach(d => d.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    btn.classList.add('active');
+    
+    // Active le nouvel onglet et le bouton
+    const tabContent = document.getElementById(id);
+    if(tabContent) tabContent.classList.add('active');
+    if(btn) btn.classList.add('active'); 
+
+    // FIX PRINCIPAL : Si l'un des onglets dynamiques est ouvert, on force le redimensionnement.
+    if (id === ABILITIES_TAB_ID || id === SPELLS_TAB_ID) {
+        // Le délai est nécessaire pour que scrollHeight soit calculable après que l'élément soit affiché
+        setTimeout(window.resizeAllCards, 10);
+    }
 }
+
+
+// --- DOM CONTENT LOADED (ÉCOUTEURS ET INITIALISATION) ---
+
+document.addEventListener('DOMContentLoaded', () => {
+    
+    allInputs = document.querySelectorAll('input, textarea');
+
+    // Événements d'entrée pour les calculs automatiques
+    document.addEventListener('input', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.type === 'checkbox') {
+            if (e.target.id === 'bonus_maitrise' || e.target.id.startsWith('val_') || 
+                e.target.id.startsWith('maitrise_') || e.target.id.startsWith('m_')) {
+                window.updateCalculations();
+            }
+        }
+    });
+
+    // Événement pour le bouton Reset
+    const resetBtn = document.getElementById('resetBtn');
+    if(resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            if(confirm("Attention : Voulez-vous vraiment effacer la fiche locale actuelle ?")) {
+                allInputs.forEach(el => {
+                    if (el.type === 'checkbox') el.checked = false;
+                    else el.value = '';
+                });
+                // Valeurs par défaut
+                stats.forEach(s => {
+                    const input = document.getElementById('val_' + s);
+                    if(input) input.value = 10;
+                });
+                document.getElementById('niveau').value = 1;
+                document.getElementById('bonus_maitrise').value = 2;
+                
+                // Effacer les listes dynamiques
+                const abilityContainer = document.getElementById('abilities-container');
+                if(abilityContainer) abilityContainer.innerHTML = '';
+                const spellContainer = document.getElementById('spells-container');
+                if(spellContainer) spellContainer.innerHTML = '';
+
+                window.updateCalculations();
+            }
+        });
+    }
+
+    // Gestion de l'ajout de cartes
+    const addAbilityBtn = document.getElementById('addAbilityBtn');
+    if (addAbilityBtn) {
+        addAbilityBtn.addEventListener('click', () => {
+            window.addAbilityCard();
+        });
+    }
+
+    const addSpellBtn = document.getElementById('addSpellBtn');
+    if (addSpellBtn) {
+        addSpellBtn.addEventListener('click', () => {
+            window.addSpellCard();
+        });
+    }
+
+    window.updateCalculations(); 
+});
