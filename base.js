@@ -64,209 +64,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if(passPercInput) passPercInput.value = 10 + percVal;
     }
 
-    // --- FIREBASE : SAUVEGARDE & CHARGEMENT ---
-
-    window.saveData = async function() {
-        const charIdInput = document.getElementById('char_id');
-        const charId = charIdInput.value.trim();
-
-        if (!charId) {
-            alert("Veuillez entrer un ID de personnage (Ex: Thorin-01) pour sauvegarder.");
-            charIdInput.focus();
-            return;
-        }
-
-        const data = {};
-        allInputs.forEach(el => {
-            if (el.id) {
-                data[el.id] = (el.type === 'checkbox') ? el.checked : el.value;
-            }
-        });
-
-        // --- GESTION DES CAPACITÉS (LISTE DYNAMIQUE) ---
-        const abilityCards = document.querySelectorAll('#abilities-container .ability-card');
-        const abilitiesList = [];
-        
-        abilityCards.forEach(card => {
-            abilitiesList.push({
-                name: card.querySelector('.ability-name').value,
-                source: card.querySelector('.ability-source').value,
-                desc: card.querySelector('.ability-desc').value,
-                collapsed: card.classList.contains('collapsed') 
-            });
-        });
-        data.abilities_list = abilitiesList; 
-
-        // --- GESTION DES SORTS (LISTE DYNAMIQUE) ---
-        const spellCards = document.querySelectorAll('#spells-container .ability-card');
-        const spellsList = [];
-        
-        spellCards.forEach(card => {
-            spellsList.push({
-                name: card.querySelector('.ability-name').value,
-                level: card.querySelector('.ability-source').value,
-                desc: card.querySelector('.ability-desc').value,
-                slotsMax: card.querySelector('.spell-slots-max').value,
-                slotsUsed: card.querySelector('.spell-slots-used').value,
-                collapsed: card.classList.contains('collapsed') 
-            });
-        });
-        data.spells_list = spellsList; 
-
-        // --- FIN GESTION SORTS/CAPACITÉS ---
-
-        try {
-            const charRef = doc(db, COLLECTION_NAME, charId);
-            await setDoc(charRef, data);
-            alert(`Fiche "${charId}" sauvegardée sur Firebase !`);
-        } catch (e) {
-            console.error("Erreur lors de la sauvegarde : ", e);
-            alert("Erreur de sauvegarde. Vérifiez la console.");
-        }
-    }
-
-    window.loadData = async function() {
-        const charIdInput = document.getElementById('char_id');
-        const charId = charIdInput.value.trim();
-
-        if (!charId) {
-            alert("Veuillez entrer l'ID du personnage à charger.");
-            charIdInput.focus();
-            return;
-        }
-
-        try {
-            const charRef = doc(db, COLLECTION_NAME, charId);
-            const docSnap = await getDoc(charRef);
-
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                
-                // Charger les inputs simples
-                allInputs.forEach(el => {
-                    if (el.id && data[el.id] !== undefined) {
-                        if (el.type === 'checkbox') el.checked = data[el.id];
-                        else el.value = data[el.id];
-                    }
-                });
-
-                // --- GESTION DES CAPACITÉS (CHARGEMENT) ---
-                const abilityContainer = document.getElementById('abilities-container');
-                abilityContainer.innerHTML = ''; 
-                if (data.abilities_list && Array.isArray(data.abilities_list)) {
-                    data.abilities_list.forEach(ability => {
-                        addAbilityCard(ability);
-                    });
-                }
-
-                // --- GESTION DES SORTS (CHARGEMENT) ---
-                const spellContainer = document.getElementById('spells-container');
-                spellContainer.innerHTML = ''; 
-                if (data.spells_list && Array.isArray(data.spells_list)) {
-                    data.spells_list.forEach(spell => {
-                        addSpellCard(spell); 
-                    });
-                }
-                // --- FIN GESTION SORTS/CAPACITÉS ---
-
-                updateCalculations();
-                alert(`Fiche "${charId}" chargée avec succès !`);
-            } else {
-                alert(`Aucune fiche trouvée avec l'ID: ${charId}`);
-            }
-        } catch (e) {
-            console.error("Erreur lors du chargement : ", e);
-            alert("Erreur de chargement. Vérifiez la console.");
-        }
-    }
-
-
-    // --- GESTION DES CAPACITÉS/SORTS (Fonctions d'ajout et suppression & COLLAPSE) ---
-
-    // Fonction de bascule (toggle) pour ouvrir/fermer la carte
-    window.toggleCollapse = function(headerElement) {
-        const card = headerElement.closest('.ability-card');
-        const content = card.querySelector('.ability-content');
-        
-        card.classList.toggle('collapsed');
-        
-        // Gérer le max-height pour l'animation CSS
-        if (content.style.maxHeight && content.style.maxHeight !== '0px') {
-            content.style.maxHeight = '0px';
-        } else {
-            content.style.maxHeight = content.scrollHeight + "px";
-        }
-    }
-
-
-    window.addAbilityCard = function(data = {}) {
-        const container = document.getElementById('abilities-container');
-        
-        const card = document.createElement('div');
-        
-        const isCollapsed = data.collapsed !== false; 
-        card.className = isCollapsed ? 'ability-card collapsed' : 'ability-card';
-        
-        card.innerHTML = `
-            <button class="remove-btn" onclick="this.closest('.ability-card').remove();">X</button>
-            <div class="ability-header" onclick="toggleCollapse(this)">
-                <input type="text" class="ability-name" placeholder="Nom de la capacité" value="${data.name || ''}" onclick="event.stopPropagation()">
-                <input type="text" class="ability-source" placeholder="(Classe/Peuple)" value="${data.source || ''}" onclick="event.stopPropagation()">
-                <i class="fas fa-chevron-down collapse-icon"></i>
-            </div>
-            <div class="ability-content">
-                <textarea class="ability-desc" rows="3" placeholder="Description de l'effet...">${data.desc || ''}</textarea>
-            </div>
-        `;
-        container.appendChild(card);
-        
-        if (!isCollapsed) {
-            const content = card.querySelector('.ability-content');
-            setTimeout(() => {
-                content.style.maxHeight = content.scrollHeight + "px";
-            }, 0);
-        }
-    }
-
-    // Fonction de création de carte de Sort
-    window.addSpellCard = function(data = {}) {
-        const container = document.getElementById('spells-container');
-        
-        const card = document.createElement('div');
-        
-        const isCollapsed = data.collapsed !== false; 
-        card.className = isCollapsed ? 'ability-card collapsed' : 'ability-card';
-        
-        card.innerHTML = `
-            <button class="remove-btn" onclick="this.closest('.ability-card').remove();">X</button>
-            <div class="ability-header" onclick="toggleCollapse(this)">
-                <input type="text" class="ability-name" placeholder="Nom du Sort" value="${data.name || ''}" onclick="event.stopPropagation()">
-                <input type="number" class="ability-source" placeholder="Niv." value="${data.level || ''}" style="width: 20%;" onclick="event.stopPropagation()">
-                <i class="fas fa-chevron-down collapse-icon"></i>
-            </div>
-            <div class="ability-content">
-                <textarea class="ability-desc" rows="3" placeholder="Portée, Composantes, Effet...">${data.desc || ''}</textarea>
-                <div style="font-size: 0.8em; margin-top: 5px;">
-                    <label>Slots:</label>
-                    <input type="number" class="spell-slots-max" placeholder="Max" value="${data.slotsMax || ''}" style="width: 30%;">
-                    <input type="number" class="spell-slots-used" placeholder="Utilisés" value="${data.slotsUsed || ''}" style="width: 30%;">
-                </div>
-            </div>
-        `;
-        container.appendChild(card);
-        
-        if (!isCollapsed) {
-            const content = card.querySelector('.ability-content');
-            setTimeout(() => {
-                content.style.maxHeight = content.scrollHeight + "px";
-            }, 0);
-        }
-    }
+    // --- ÉCOUTEURS D'ÉVÉNEMENTS ---
     
-    // Écouteurs pour les calculs et le reset
+    // Calculs automatiques
     document.addEventListener('input', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-            // Déclencher les calculs pour les stats/compétences
             if (e.target.id === 'bonus_maitrise' || e.target.id.startsWith('val_') || 
                 e.target.id.startsWith('maitrise_') || e.target.id.startsWith('m_')) {
                 updateCalculations();
@@ -274,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Reset du formulaire
     const resetBtn = document.getElementById('resetBtn');
     if(resetBtn) {
         resetBtn.addEventListener('click', () => {
@@ -301,11 +104,227 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Fix pour l'ajout de cartes (solution au problème mobile/module)
+    const addAbilityBtn = document.getElementById('addAbilityBtn');
+    if (addAbilityBtn) {
+        addAbilityBtn.addEventListener('click', () => {
+            window.addAbilityCard();
+        });
+    }
+
+    const addSpellBtn = document.getElementById('addSpellBtn');
+    if (addSpellBtn) {
+        addSpellBtn.addEventListener('click', () => {
+            window.addSpellCard();
+        });
+    }
+
     updateCalculations(); 
 });
 
 
-// --- SYSTÈME DE DÉS ---
+// --- FIREBASE : SAUVEGARDE & CHARGEMENT ---
+
+window.saveData = async function() {
+    const charIdInput = document.getElementById('char_id');
+    const charId = charIdInput.value.trim();
+
+    if (!charId) {
+        alert("Veuillez entrer un ID de personnage (Ex: Thorin-01) pour sauvegarder.");
+        charIdInput.focus();
+        return;
+    }
+
+    const data = {};
+    allInputs.forEach(el => {
+        if (el.id) {
+            data[el.id] = (el.type === 'checkbox') ? el.checked : el.value;
+        }
+    });
+
+    // --- GESTION DES CAPACITÉS (LISTE DYNAMIQUE) ---
+    const abilityCards = document.querySelectorAll('#abilities-container .ability-card');
+    const abilitiesList = [];
+    
+    abilityCards.forEach(card => {
+        abilitiesList.push({
+            name: card.querySelector('.ability-name').value,
+            source: card.querySelector('.ability-source').value,
+            desc: card.querySelector('.ability-desc').value,
+            collapsed: card.classList.contains('collapsed') 
+        });
+    });
+    data.abilities_list = abilitiesList; 
+
+    // --- GESTION DES SORTS (LISTE DYNAMIQUE) ---
+    const spellCards = document.querySelectorAll('#spells-container .ability-card');
+    const spellsList = [];
+    
+    spellCards.forEach(card => {
+        spellsList.push({
+            name: card.querySelector('.ability-name').value,
+            level: card.querySelector('.ability-source').value,
+            desc: card.querySelector('.ability-desc').value,
+            slotsMax: card.querySelector('.spell-slots-max').value,
+            slotsUsed: card.querySelector('.spell-slots-used').value,
+            collapsed: card.classList.contains('collapsed') 
+        });
+    });
+    data.spells_list = spellsList; 
+
+    // --- FIN GESTION SORTS/CAPACITÉS ---
+
+    try {
+        const charRef = doc(db, COLLECTION_NAME, charId);
+        await setDoc(charRef, data);
+        alert(`Fiche "${charId}" sauvegardée sur Firebase !`);
+    } catch (e) {
+        console.error("Erreur lors de la sauvegarde : ", e);
+        alert("Erreur de sauvegarde. Vérifiez la console.");
+    }
+}
+
+window.loadData = async function() {
+    const charIdInput = document.getElementById('char_id');
+    const charId = charIdInput.value.trim();
+
+    if (!charId) {
+        alert("Veuillez entrer l'ID du personnage à charger.");
+        charIdInput.focus();
+        return;
+    }
+
+    try {
+        const charRef = doc(db, COLLECTION_NAME, charId);
+        const docSnap = await getDoc(charRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            
+            // Charger les inputs simples
+            allInputs.forEach(el => {
+                if (el.id && data[el.id] !== undefined) {
+                    if (el.type === 'checkbox') el.checked = data[el.id];
+                    else el.value = data[el.id];
+                }
+            });
+
+            // --- GESTION DES CAPACITÉS (CHARGEMENT) ---
+            const abilityContainer = document.getElementById('abilities-container');
+            abilityContainer.innerHTML = ''; 
+            if (data.abilities_list && Array.isArray(data.abilities_list)) {
+                data.abilities_list.forEach(ability => {
+                    addAbilityCard(ability);
+                });
+            }
+
+            // --- GESTION DES SORTS (CHARGEMENT) ---
+            const spellContainer = document.getElementById('spells-container');
+            spellContainer.innerHTML = ''; 
+            if (data.spells_list && Array.isArray(data.spells_list)) {
+                data.spells_list.forEach(spell => {
+                    addSpellCard(spell); 
+                });
+            }
+            // --- FIN GESTION SORTS/CAPACITÉS ---
+
+            updateCalculations();
+            alert(`Fiche "${charId}" chargée avec succès !`);
+        } else {
+            alert(`Aucune fiche trouvée avec l'ID: ${charId}`);
+        }
+    } catch (e) {
+        console.error("Erreur lors du chargement : ", e);
+        alert("Erreur de chargement. Vérifiez la console.");
+    }
+}
+
+
+// --- GESTION DES CAPACITÉS/SORTS (Fonctions d'ajout et suppression & COLLAPSE) ---
+
+// Fonction de bascule (toggle) pour ouvrir/fermer la carte
+window.toggleCollapse = function(headerElement) {
+    const card = headerElement.closest('.ability-card');
+    const content = card.querySelector('.ability-content');
+    
+    card.classList.toggle('collapsed');
+    
+    // Gérer le max-height pour l'animation CSS
+    if (content.style.maxHeight && content.style.maxHeight !== '0px') {
+        content.style.maxHeight = '0px';
+    } else {
+        content.style.maxHeight = content.scrollHeight + "px";
+    }
+}
+
+
+window.addAbilityCard = function(data = {}) {
+    const container = document.getElementById('abilities-container');
+    
+    const card = document.createElement('div');
+    
+    const isCollapsed = data.collapsed !== false; 
+    card.className = isCollapsed ? 'ability-card collapsed' : 'ability-card';
+    
+    card.innerHTML = `
+        <button class="remove-btn" onclick="this.closest('.ability-card').remove();">X</button>
+        <div class="ability-header" onclick="toggleCollapse(this)">
+            <input type="text" class="ability-name" placeholder="Nom de la capacité" value="${data.name || ''}" onclick="event.stopPropagation()">
+            <input type="text" class="ability-source" placeholder="(Classe/Peuple)" value="${data.source || ''}" onclick="event.stopPropagation()">
+            <i class="fas fa-chevron-down collapse-icon"></i>
+        </div>
+        <div class="ability-content">
+            <textarea class="ability-desc" rows="3" placeholder="Description de l'effet...">${data.desc || ''}</textarea>
+        </div>
+    `;
+    container.appendChild(card);
+    
+    if (!isCollapsed) {
+        const content = card.querySelector('.ability-content');
+        setTimeout(() => {
+            content.style.maxHeight = content.scrollHeight + "px";
+        }, 0);
+    }
+}
+
+// Fonction de création de carte de Sort
+window.addSpellCard = function(data = {}) {
+    const container = document.getElementById('spells-container');
+    
+    const card = document.createElement('div');
+    
+    const isCollapsed = data.collapsed !== false; 
+    card.className = isCollapsed ? 'ability-card collapsed' : 'ability-card';
+    
+    card.innerHTML = `
+        <button class="remove-btn" onclick="this.closest('.ability-card').remove();">X</button>
+        <div class="ability-header" onclick="toggleCollapse(this)">
+            <input type="text" class="ability-name" placeholder="Nom du Sort" value="${data.name || ''}" onclick="event.stopPropagation()">
+            <input type="number" class="ability-source" placeholder="Niv." value="${data.level || ''}" style="width: 20%;" onclick="event.stopPropagation()">
+            <i class="fas fa-chevron-down collapse-icon"></i>
+        </div>
+        <div class="ability-content">
+            <textarea class="ability-desc" rows="3" placeholder="Portée, Composantes, Effet...">${data.desc || ''}</textarea>
+            <div style="font-size: 0.8em; margin-top: 5px;">
+                <label>Slots:</label>
+                <input type="number" class="spell-slots-max" placeholder="Max" value="${data.slotsMax || ''}" style="width: 30%;">
+                <input type="number" class="spell-slots-used" placeholder="Utilisés" value="${data.slotsUsed || ''}" style="width: 30%;">
+            </div>
+        </div>
+    `;
+    container.appendChild(card);
+    
+    if (!isCollapsed) {
+        const content = card.querySelector('.ability-content');
+        setTimeout(() => {
+            content.style.maxHeight = content.scrollHeight + "px";
+        }, 0);
+    }
+}
+
+
+// --- SYSTÈME DE DÉS (Modale) ---
+
 window.rollStat = function(statName) {
     const valInput = document.getElementById('val_' + statName);
     const score = parseInt(valInput.value) || 10;
