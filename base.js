@@ -65,18 +65,15 @@ window.updateCalculations = function() {
 
     // --- CALCULS DE COMBAT DE BASE ---
     
-    const modForce = getStatMod('force');
-    const modDex = getStatMod('dex');
-
     // Mod CàC : Affiche le Mod FOR seul
-    const attaqueCac = modForce; 
+    const modForce = getStatMod('force');
     const cacInput = document.getElementById('atk_cac');
-    if (cacInput) cacInput.value = formatBonus(attaqueCac);
+    if (cacInput) cacInput.value = formatBonus(modForce);
 
     // Mod Dist. : Affiche le Mod DEX seul
-    const attaqueDistance = modDex;
+    const modDex = getStatMod('dex');
     const distInput = document.getElementById('atk_dist');
-    if (distInput) distInput.value = formatBonus(attaqueDistance);
+    if (distInput) distInput.value = formatBonus(modDex);
 
     // Statistiques Magiques
     const statMagieId = document.getElementById('stat_magie_id')?.value.toLowerCase() || 'int'; 
@@ -94,37 +91,59 @@ window.updateCalculations = function() {
     const atkMagInputSpells = document.getElementById('magic_atk');
     if (atkMagInputSpells) atkMagInputSpells.value = formatBonus(attaqueMagique);
 
+    // --- CALCULS DES ARMES INDIVIDUELLES (NOUVEAU) ---
+    for (let i = 1; i <= 4; i++) {
+        const statInput = document.getElementById(`w${i}_stat`);
+        const masteryCheck = document.getElementById(`w${i}_maitrise`);
+        const atkInput = document.getElementById(`w${i}_atk`);
+        
+        if (!statInput || !atkInput) continue;
+
+        const statCode = statInput.value.toLowerCase().trim();
+        const mastery = masteryCheck?.checked || false;
+
+        let mod = 0;
+        // Détermination du Modificateur de Caractéristique
+        if (statCode === 'for' || statCode === 'force') mod = getStatMod('force');
+        else if (statCode === 'dex' || statCode === 'dextérité') mod = getStatMod('dex');
+        else if (statCode === 'con' || statCode === 'constitution') mod = getStatMod('con');
+        else if (statCode === 'int' || statCode === 'intelligence') mod = getStatMod('int');
+        else if (statCode === 'sag' || statCode === 'sagesse') mod = getStatMod('sag');
+        else if (statCode === 'cha' || statCode === 'charisme') mod = getStatMod('cha');
+
+        // Bonus d'Attaque Total = Mod de Carac + (Bonus de Maîtrise si cochée)
+        const totalAttackBonus = mod + (mastery ? profBonus : 0);
+        atkInput.value = formatBonus(totalAttackBonus);
+    }
     // --- FIN CALCULS DE COMBAT AUTOMATIQUES ---
 
 
-    // 2. Calcul des Compétences
+    // 2. Calcul des Compétences (inchangé)
     for (const [skillCode, statCode] of Object.entries(skillMap)) {
         const mod = getStatMod(statCode); 
         const skillCheck = document.getElementById('m_' + skillCode);
         const skillValInput = document.getElementById('v_' + skillCode);
 
         if (skillCheck && skillValInput) {
-            // Compétence = Mod Stat + (Maîtrise si cochée)
             let skillTotal = mod + (skillCheck.checked ? profBonus : 0);
             skillValInput.value = skillTotal;
         }
     }
     
-    // 3. Calcul de la Perception Passive
+    // 3. Calcul de la Perception Passive (inchangé)
     const percValInput = document.getElementById('v_perc');
     const passPercInput = document.getElementById('perception_passive');
 
     if (percValInput && passPercInput) {
         const percVal = parseInt(percValInput.value) || 0;
-        // Perception Passive = 10 + Mod. Perception (qui est v_perc)
         passPercInput.value = 10 + percVal;
     }
 }
 
 
-// --- GESTION DES CARTES DYNAMIQUES (CAPACITÉS & SORTS) ---
+// --- GESTION DES CARTES DYNAMIQUES (CAPACITÉS & SORTS - INCHANGÉ) ---
+// Note: Le code complet des fonctions dynamiques est conservé pour la complexité.
 
-/** Redimensionne automatiquement le textarea */
 window.autoResizeTextarea = function(el) {
     if (el.offsetParent === null) return; 
     el.style.height = 'auto'; 
@@ -138,7 +157,6 @@ window.autoResizeTextarea = function(el) {
     }
 };
 
-/** Ouvre/Ferme une carte de capacité/sort */
 window.toggleCollapse = function(headerElement) {
     const card = headerElement.closest('.ability-card');
     const content = card.querySelector('.ability-content');
@@ -154,7 +172,6 @@ window.toggleCollapse = function(headerElement) {
     }
 }
 
-/** Recalcule la hauteur de toutes les cartes ouvertes */
 window.resizeAllCards = function() {
     document.querySelectorAll(`#${ABILITIES_TAB_ID} .ability-card, #${SPELLS_TAB_ID} .ability-card`).forEach(card => {
         const descEl = card.querySelector('.ability-desc');
@@ -170,7 +187,6 @@ window.resizeAllCards = function() {
     });
 }
 
-/** Ajoute une nouvelle carte de Capacité */
 window.addAbilityCard = function(data = {}) {
     const container = document.getElementById('abilities-container');
     if (!container) return;
@@ -194,7 +210,6 @@ window.addAbilityCard = function(data = {}) {
     setTimeout(window.resizeAllCards, 10);
 }
 
-/** Ajoute une nouvelle carte de Sort */
 window.addSpellCard = function(data = {}) {
     const container = document.getElementById('spells-container');
     if (!container) return;
@@ -224,7 +239,7 @@ window.addSpellCard = function(data = {}) {
 }
 
 
-// --- FIREBASE : SAUVEGARDE & CHARGEMENT ---
+// --- FIREBASE : SAUVEGARDE & CHARGEMENT (INCHANGÉ) ---
 
 window.saveData = async function() {
     const charIdInput = document.getElementById('char_id');
@@ -365,6 +380,18 @@ window.rollSimple = function(title, inputId) {
     launchModal(title, bonus);
 }
 
+/** Lance un jet de dé pour une attaque d'arme (NOUVEAU) */
+window.rollWeaponAttack = function(index) {
+    const nameInput = document.getElementById(`w${index}_nom`);
+    const atkInput = document.getElementById(`w${index}_atk`);
+    
+    const weaponName = nameInput?.value.trim() || `Arme ${index}`;
+    // Récupère le bonus d'attaque calculé dans l'input readonly
+    const bonus = parseInt(atkInput?.value) || 0; 
+    
+    launchModal(`Attaque : ${weaponName}`, bonus);
+}
+
 function launchModal(title, mod) {
     const dieRoll = Math.floor(Math.random() * 20) + 1;
     const total = dieRoll + mod;
@@ -404,16 +431,13 @@ window.onclick = function(event) {
 
 // Navigation Onglets
 window.openTab = function(id, btn) {
-    // Désactive tous les onglets et boutons
     document.querySelectorAll('.tab-content').forEach(d => d.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     
-    // Active le nouvel onglet et le bouton
     const tabContent = document.getElementById(id);
     if(tabContent) tabContent.classList.add('active');
     if(btn) btn.classList.add('active'); 
 
-    // Si l'un des onglets dynamiques est ouvert, on force le redimensionnement.
     if (id === ABILITIES_TAB_ID || id === SPELLS_TAB_ID) {
         setTimeout(window.resizeAllCards, 10);
     }
@@ -424,25 +448,27 @@ window.openTab = function(id, btn) {
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // Sélection de tous les inputs une seule fois au chargement
     allInputs = document.querySelectorAll('input, textarea');
 
     // Événements d'entrée pour les calculs automatiques
     document.addEventListener('input', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.type === 'checkbox') {
-            // Déclenche un recalcul si on modifie une stat, le bonus de maîtrise, ou un check de maîtrise
+            
+            // Check des inputs généraux et des statuts de maîtrise
             if (e.target.id === 'bonus_maitrise' || e.target.id.startsWith('val_') || 
-                e.target.id.startsWith('maitrise_') || e.target.id.startsWith('m_')) {
+                e.target.id.startsWith('maitrise_') || e.target.id.startsWith('m_') ||
+                e.target.id === 'stat_magie_id') {
                 window.updateCalculations();
             }
-            // Déclenche un recalcul si la stat magique est modifiée
-            if (e.target.id === 'stat_magie_id') {
+            
+            // Check des inputs spécifiques aux armes (Stat et Maîtrise)
+            if (e.target.id.endsWith('_stat') || e.target.id.endsWith('_maitrise')) {
                 window.updateCalculations();
             }
         }
     });
 
-    // Événement pour le bouton Reset
+    // ... (Le reste de l'initialisation est inchangé) ...
     const resetBtn = document.getElementById('resetBtn');
     if(resetBtn) {
         resetBtn.addEventListener('click', () => {
@@ -453,7 +479,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         el.value = '';
                     }
                 });
-                // Valeurs par défaut des stats
                 stats.forEach(s => {
                     const input = document.getElementById('val_' + s);
                     if(input) input.value = 10;
@@ -463,7 +488,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const magieStatInput = document.getElementById('stat_magie_id');
                 if (magieStatInput) magieStatInput.value = 'int';
                 
-                // Effacer les listes dynamiques
                 const abilityContainer = document.getElementById('abilities-container');
                 if(abilityContainer) abilityContainer.innerHTML = '';
                 const spellContainer = document.getElementById('spells-container');
@@ -474,7 +498,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Gestion de l'ajout de cartes (Capacités & Sorts)
     const addAbilityBtn = document.getElementById('addAbilityBtn');
     if (addAbilityBtn) {
         addAbilityBtn.addEventListener('click', () => {
@@ -489,6 +512,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Lancement des premiers calculs au démarrage
     window.updateCalculations(); 
 });

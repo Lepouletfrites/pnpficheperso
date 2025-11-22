@@ -211,12 +211,47 @@
 
             <section class="card">
                 <h3>Armes & Attaques Spéciales</h3>
-                <div class="weapon-row header-w"><span>Nom</span><span>Atk</span><span>Dégâts</span></div>
-                <div class="weapon-row"><input type="text" id="w1_nom" placeholder="Arme 1 / Sort 1"><input type="text" id="w1_atk" placeholder="+x"><input type="text" id="w1_dmg" placeholder="Dégâts + Mod"></div>
-                <div class="weapon-row"><input type="text" id="w2_nom" placeholder="Arme 2 / Sort 2"><input type="text" id="w2_atk" placeholder="+x"><input type="text" id="w2_dmg" placeholder="Dégâts + Mod"></div>
-                <div class="weapon-row"><input type="text" id="w3_nom" placeholder="Arme 3 / Sort 3"><input type="text" id="w3_atk" placeholder="+x"><input type="text" id="w3_dmg" placeholder="Dégâts + Mod"></div>
-                <div class="weapon-row"><input type="text" id="w4_nom" placeholder="Arme 4 / Sort 4"><input type="text" id="w4_atk" placeholder="+x"><input type="text" id="w4_dmg" placeholder="Dégâts + Mod"></div>
+                <div class="weapon-row header-w">
+                    <span>Nom</span>
+                    <span>Stat</span>
+                    <span title="Maîtrise">M</span>
+                    <span>Atk</span>
+                    <span>Dégâts</span>
+                </div>
+                <div class="weapon-row">
+                    <input type="text" id="w1_nom" placeholder="Arme 1 / Sort 1">
+                    <input type="text" id="w1_stat" placeholder="F/D" value="FOR">
+                    <input type="checkbox" id="w1_maitrise">
+                    <input type="text" id="w1_atk" readonly placeholder="+x">
+                    <input type="text" id="w1_dmg" placeholder="Dégâts + Mod">
+                    <button class="roll-btn" onclick="rollWeaponAttack(1)"><i class="fas fa-dice-d20"></i></button>
+                </div>
+                <div class="weapon-row">
+                    <input type="text" id="w2_nom" placeholder="Arme 2 / Sort 2">
+                    <input type="text" id="w2_stat" placeholder="F/D" value="DEX">
+                    <input type="checkbox" id="w2_maitrise">
+                    <input type="text" id="w2_atk" readonly placeholder="+x">
+                    <input type="text" id="w2_dmg" placeholder="Dégâts + Mod">
+                    <button class="roll-btn" onclick="rollWeaponAttack(2)"><i class="fas fa-dice-d20"></i></button>
+                </div>
+                <div class="weapon-row">
+                    <input type="text" id="w3_nom" placeholder="Arme 3 / Sort 3">
+                    <input type="text" id="w3_stat" placeholder="F/D/C" value="">
+                    <input type="checkbox" id="w3_maitrise">
+                    <input type="text" id="w3_atk" readonly placeholder="+x">
+                    <input type="text" id="w3_dmg" placeholder="Dégâts + Mod">
+                    <button class="roll-btn" onclick="rollWeaponAttack(3)"><i class="fas fa-dice-d20"></i></button>
+                </div>
+                <div class="weapon-row">
+                    <input type="text" id="w4_nom" placeholder="Arme 4 / Sort 4">
+                    <input type="text" id="w4_stat" placeholder="F/D/C" value="">
+                    <input type="checkbox" id="w4_maitrise">
+                    <input type="text" id="w4_atk" readonly placeholder="+x">
+                    <input type="text" id="w4_dmg" placeholder="Dégâts + Mod">
+                    <button class="roll-btn" onclick="rollWeaponAttack(4)"><i class="fas fa-dice-d20"></i></button>
+                </div>
             </section>
+
         </div>
 
         <div id="tab-abilities" class="tab-content">

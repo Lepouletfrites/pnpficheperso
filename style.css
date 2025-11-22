@@ -620,3 +620,100 @@ input:focus, textarea:focus { border-color: var(--accent); outline: none; }
 .ability-header input {
     width: 45%; 
 }
+
+/* ======================================= */
+/* --- STYLE DE LA SECTION ARMES (COMBAT) ---*/
+/* ======================================= */
+
+/* Conteneur de la ligne (Flexbox) */
+.weapon-row {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Espace entre les colonnes */
+    padding: 5px 0;
+    border-bottom: 1px solid var(--color-dark-grey);
+    font-size: 0.95em;
+}
+
+/* En-tête des colonnes */
+.weapon-row.header-w {
+    border-bottom: 2px solid var(--color-grey);
+    padding-bottom: 8px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: var(--color-text-secondary);
+}
+
+/* Styles généraux des inputs dans la ligne */
+.weapon-row input {
+    height: 30px;
+    padding: 0 5px;
+    box-sizing: border-box;
+    /* On utilise flex pour gérer la largeur, on annule les styles inline */
+    width: auto !important; 
+    text-align: inherit !important;
+}
+
+/* Attaque calculée (visuellement distincte) */
+.weapon-row input[readonly] {
+    background-color: var(--color-darker-grey);
+    color: var(--color-gold);
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Répartition des largeurs des éléments (via flex) */
+/* Nom (le plus large) */
+.weapon-row input[id$="_nom"], 
+.weapon-row.header-w span:nth-child(1) {
+    flex: 38; 
+    min-width: 80px;
+}
+
+/* Stat et Atk */
+.weapon-row input[id$="_stat"],
+.weapon-row input[id$="_atk"],
+.weapon-row.header-w span:nth-child(2),
+.weapon-row.header-w span:nth-child(4) {
+    flex: 15; 
+    max-width: 60px;
+    text-align: center;
+}
+
+/* Dégâts */
+.weapon-row input[id$="_dmg"],
+.weapon-row.header-w span:nth-child(5) {
+    flex: 25; 
+    min-width: 80px;
+}
+
+/* Maîtrise (Checkbox) */
+.weapon-row input[type="checkbox"] {
+    flex: 0 0 20px; /* Taille fixe de 20px */
+    margin: 0 auto; 
+    height: 20px;
+}
+.weapon-row.header-w span:nth-child(3) {
+    flex: 0 0 20px;
+    text-align: center;
+}
+
+/* Bouton de Jet de Dé */
+.roll-btn {
+    flex-shrink: 0; 
+    width: 30px; 
+    height: 30px;
+    background-color: var(--color-blue);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.roll-btn:hover {
+    background-color: var(--color-blue-light);
+}
