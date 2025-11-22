@@ -1,0 +1,508 @@
+:root {
+    --bg: #1a1b26;         /* Fond principal sombre */
+    --card: #24283b;       /* Fond des cartes */
+    --accent: #7aa2f7;     /* Bleu principal */
+    --text: #c0caf5;       /* Texte clair */
+    --text-muted: #565f89; /* Texte secondaire */
+    --border: #414868;     /* Bordures subtiles */
+    --input: #16161e;      /* Fond des inputs */
+    --success: #9ece6a;    /* Vert */
+    --warning: #e0af68;    /* Jaune/Or */
+    --danger: #f7768e;     /* Rouge */
+}
+
+/* --- RESET & BASE --- */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+    margin: 0; 
+    background: var(--bg); 
+    color: var(--text);
+    font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; 
+    height: 100vh;
+    display: flex; 
+    flex-direction: column;
+}
+
+/* --- HEADER FIXE --- */
+.top-bar {
+    background: var(--card); 
+    padding: 10px 15px; 
+    border-bottom: 2px solid var(--border);
+    display: flex; 
+    gap: 15px; 
+    align-items: center;
+    z-index: 10;
+}
+.char-summary { flex: 1; }
+
+.ghost-input {
+    background: transparent; 
+    border: none; 
+    color: white; 
+    font-size: 1.2rem; 
+    font-weight: bold; 
+    width: 100%;
+    margin-bottom: 2px;
+}
+.ghost-input::placeholder { color: var(--text-muted); opacity: 0.5; }
+
+.level-box { 
+    font-size: 0.85rem; 
+    color: var(--text-muted); 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+}
+.level-box input { 
+    width: 40px; 
+    background: var(--input); 
+    border: 1px solid var(--border); 
+    border-radius: 4px;
+    color: white; 
+    text-align: center; 
+    padding: 2px;
+}
+
+.icon-btn { 
+    background: rgba(247, 118, 142, 0.1); 
+    border: 1px solid var(--danger); 
+    color: var(--danger); 
+    width: 40px; height: 40px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+}
+
+/* --- ZONE DE CONTENU (SCROLLABLE) --- */
+.content-area { 
+    flex: 1; 
+    overflow-y: auto; 
+    padding: 15px; 
+    padding-bottom: 80px; /* Espace pour le menu du bas */
+}
+
+/* Animation des onglets */
+.tab-content { display: none; opacity: 0; transition: opacity 0.3s ease; }
+.tab-content.active { display: block; opacity: 1; }
+
+/* --- CARTES GÉNÉRIQUES --- */
+.card {
+    background: var(--card); 
+    padding: 15px; 
+    border-radius: 12px; 
+    margin-bottom: 15px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+h3 { 
+    color: var(--accent); 
+    margin: 0 0 12px 0; 
+    border-bottom: 1px solid var(--border); 
+    padding-bottom: 8px; 
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* --- INPUTS & GRIDS GÉNÉRAUX --- */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.input-group { display: flex; flex-direction: column; }
+.input-group.full-width { margin-top: 10px; }
+
+.input-group label { 
+    font-size: 0.7rem; 
+    color: var(--text-muted); 
+    margin-bottom: 4px; 
+    text-transform: uppercase; 
+    font-weight: 600;
+}
+
+input, textarea {
+    background: var(--input); 
+    border: 1px solid var(--border);
+    color: white; 
+    padding: 10px; 
+    border-radius: 6px;
+    font-size: 0.95rem;
+    width: 100%;
+    transition: border 0.2s;
+}
+input:focus, textarea:focus { border-color: var(--accent); outline: none; }
+
+/* --- CARACTÉRISTIQUES (STATS) --- */
+/* Alignement corrigé ici */
+.stats-grid { 
+    display: grid; 
+    grid-template-columns: repeat(2, 1fr); /* 2 Colonnes strictes */
+    gap: 12px; 
+    margin-bottom: 20px; 
+}
+
+.stat-box {
+    background: var(--card); 
+    padding: 10px; 
+    border-radius: 8px; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    border-top: 4px solid #555; /* Couleur par défaut */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Couleurs spécifiques des bordures */
+.stat-box.red-border { border-color: var(--danger); }
+.stat-box.green-border { border-color: var(--success); }
+.stat-box.orange-border { border-color: var(--warning); }
+.stat-box.blue-border { border-color: var(--accent); }
+.stat-box.purple-border { border-color: #bb9af7; }
+.stat-box.yellow-border { border-color: #e0af68; }
+
+.stat-box label { 
+    font-size: 0.7rem; 
+    font-weight: bold; 
+    color: var(--text-muted);
+    margin-bottom: 5px;
+}
+
+/* Le gros chiffre de stat */
+.main-stat { 
+    font-size: 1.8rem; 
+    font-weight: bold; 
+    text-align: center; 
+    border: none; 
+    background: transparent; 
+    padding: 0; 
+    margin: 5px 0;
+    width: 100%;
+}
+
+/* La pilule du modificateur */
+.mod-box { 
+    background: rgba(255,255,255,0.05); 
+    border-radius: 12px; 
+    font-size: 0.9rem; 
+    padding: 2px 12px; 
+    color: var(--accent);
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+/* Ligne Sauvegarde et Maîtrise alignée */
+.save-row { 
+    width: 100%;
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; /* Écarte les éléments */
+    background: var(--input);
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-top: auto; /* Pousse vers le bas */
+}
+
+.save-row label { margin: 0; font-size: 0.65rem; }
+.save-row input[type=number] { 
+    width: 35px; 
+    text-align: center; 
+    padding: 2px; 
+    height: 25px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    font-weight: bold;
+}
+.save-row input[type=checkbox] { 
+    width: 16px; height: 16px; 
+    accent-color: var(--accent);
+    margin: 0;
+}
+
+/* --- COMPÉTENCES --- */
+.skill-list { list-style: none; padding: 0; margin: 0; }
+.skill-list li {
+    display: flex; 
+    align-items: center; 
+    padding: 8px 0; 
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.skill-list li:last-child { border-bottom: none; }
+.skill-list input[type=checkbox] { width: 20px; height: 20px; margin-right: 10px; accent-color: var(--accent);}
+.skill-list label { flex: 1; font-size: 0.9rem; color: var(--text); }
+.skill-list input[type=number] { 
+    width: 45px; 
+    text-align: center; 
+    background: var(--input);
+    border: 1px solid var(--border);
+}
+
+/* --- COMBAT (ALIGNEMENT CORRIGÉ) --- */
+.combat-grid { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); /* 3 colonnes égales */
+    gap: 10px; 
+    margin-bottom: 15px;
+}
+
+.c-box { 
+    background: var(--input); 
+    padding: 10px; 
+    border-radius: 8px; 
+    text-align: center; 
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 80px; /* Hauteur fixe pour alignement parfait */
+}
+
+.c-box label { 
+    font-size: 0.7rem; 
+    color: var(--text-muted); 
+    margin-bottom: 5px; 
+    text-transform: uppercase;
+}
+.c-box input { 
+    text-align: center; 
+    background: none; 
+    border: none; 
+    font-size: 1.4rem; 
+    font-weight: bold; 
+    padding: 0; 
+    color: white;
+}
+
+/* Petits labels pour la 2ème rangée (Atk CàC...) */
+.small-label label { font-size: 0.6rem; }
+.small-label input { font-size: 1rem; color: var(--accent); }
+
+/* VITALITÉ */
+.hp-section .hp-row { 
+    display: flex; 
+    gap: 15px; 
+    margin-bottom: 15px; 
+    align-items: flex-end; /* Aligne le bas des inputs */
+}
+.hp-section .big-input { 
+    font-size: 2rem; 
+    color: var(--danger); 
+    text-align: center; 
+    height: 60px;
+}
+
+.death-saves { 
+    background: var(--input); 
+    padding: 10px; 
+    border-radius: 8px; 
+    margin-top: 10px;
+}
+.check-row { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    margin-top: 5px; 
+    font-size: 0.8rem;
+}
+.check-row input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--text); }
+
+/* --- ARMES --- */
+.weapon-row { 
+    display: grid; 
+    grid-template-columns: 4fr 1.5fr 2.5fr; /* Proportion: Nom / Bonus / Dégats */
+    gap: 8px; 
+    margin-bottom: 8px; 
+    align-items: center;
+}
+.header-w span { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
+
+/* --- MONNAIE --- */
+.money-grid { display: flex; gap: 8px; margin-bottom: 15px; }
+.money-grid div { flex: 1; text-align: center; }
+.money-grid input { text-align: center; padding: 5px; font-weight: bold; }
+
+/* --- NAVIGATION BAS --- */
+.bottom-nav {
+    position: fixed; 
+    bottom: 0; left: 0; right: 0;
+    height: 60px;
+    background: var(--card);
+    border-top: 1px solid var(--border); 
+    display: flex; 
+    justify-content: space-around;
+    align-items: center;
+    z-index: 100;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+}
+
+.nav-btn {
+    background: none; 
+    border: none; 
+    color: var(--text-muted);
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;
+    font-size: 0.7rem;
+    width: 100%;
+    height: 100%;
+}
+.nav-btn i { font-size: 1.3rem; margin-bottom: 4px; transition: transform 0.2s;}
+.nav-btn.active { color: var(--accent); }
+.nav-btn.active i { transform: translateY(-2px); }
+
+
+/* --- BUTTON LANCER DÉ --- */
+.roll-trigger {
+    cursor: pointer;
+    transition: transform 0.1s, background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.1);
+}
+.roll-trigger:active {
+    transform: scale(0.95);
+    background: var(--accent);
+    color: #000;
+}
+.roll-trigger i { font-size: 0.8rem; }
+
+/* --- MODAL (FENÊTRE POP-UP) --- */
+.modal {
+    display: none; /* Caché par défaut */
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.8); /* Fond sombre transparent */
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: var(--card);
+    border: 2px solid var(--accent);
+    border-radius: 15px;
+    padding: 20px;
+    width: 85%;
+    max-width: 350px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 0 20px rgba(122, 162, 247, 0.5);
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.close-btn {
+    position: absolute;
+    top: 5px; right: 15px;
+    color: var(--text-muted);
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.roll-animation {
+    font-size: 3rem;
+    color: var(--accent);
+    margin-bottom: 10px;
+    animation: spin 1s ease-out;
+}
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+.roll-details {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: var(--text-muted);
+}
+.detail-box b { color: white; }
+
+.roll-total-box {
+    background: var(--input);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+}
+.roll-total-box .label { display: block; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 5px; }
+#valTotal {
+    font-size: 3.5rem;
+    font-weight: bold;
+    color: var(--success);
+    line-height: 1;
+}
+
+.crit-msg {
+    margin-top: 5px;
+    font-weight: bold;
+    font-size: 1.2rem;
+    height: 20px;
+}
+.crit-success { color: #e0af68; text-shadow: 0 0 10px #e0af68; } /* Or */
+.crit-fail { color: #f7768e; } /* Rouge */
+
+/* Ajout pour les textes cliquables (Sauvegardes et Compétences) */
+.click-text {
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 1px dotted rgba(255,255,255,0.2);
+}
+.click-text:hover {
+    color: var(--accent);
+    text-shadow: 0 0 5px rgba(122, 162, 247, 0.5);
+}
+.click-text i {
+    font-size: 0.8em;
+    margin-right: 3px;
+    opacity: 0.7;
+}
+/* --- BARRE FIREBASE (SOUS LE HEADER) --- */
+.firebase-bar {
+    background: var(--input); 
+    padding: 8px 15px; 
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+#char_id {
+    flex: 1;
+    font-size: 0.85rem;
+    padding: 8px;
+    background: var(--bg);
+}
+
+.fb-btn {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.2s;
+}
+
+.save-btn {
+    background: #4CAF50; /* Vert */
+    color: white;
+}
+.save-btn:hover { background: #45a049; }
+
+.load-btn {
+    background: var(--accent);
+    color: white;
+}
+.load-btn:hover { background: #6a90ec; }

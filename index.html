@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fiche Role'N Play Interactive</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
+        // Vous n'aurez besoin que de l'initialisation dans cette partie
+        const firebaseConfig = {
+            apiKey: "AIzaSyCNK9d02TCh2z9sWL2cGP_rvBKZsxl1TNc",
+            authDomain: "ficherollandplay.firebaseapp.com",
+            projectId: "ficherollandplay",
+            storageBucket: "ficherollandplay.firebasestorage.app",
+            messagingSenderId: "952781427494",
+            appId: "1:952781427494:web:3f16a693161a5f426567e7"
+        };
+        const app = initializeApp(firebaseConfig);
+    </script>
+</head>
+<body>
+
+    <header class="top-bar">
+        <div class="char-summary">
+            <input type="text" id="nom_perso" class="ghost-input" placeholder="Nom du Personnage">
+            <div class="level-box">Niv <input type="number" id="niveau" value="1"></div>
+        </div>
+        <button id="resetBtn" class="icon-btn"><i class="fas fa-trash-alt"></i></button>
+    </header>
+    
+    <div class="firebase-bar">
+        <input type="text" id="char_id" placeholder="ID du Personnage (Ex: Thorin-01)">
+        <button onclick="saveData()" class="fb-btn save-btn"><i class="fas fa-cloud-upload-alt"></i> Sauver</button>
+        <button onclick="loadData()" class="fb-btn load-btn"><i class="fas fa-cloud-download-alt"></i> Charger</button>
+    </div>
+
+    <main class="content-area">
+
+        <div id="tab-main" class="tab-content active">
+            
+            <section class="card">
+                <div class="grid-2">
+                    <div class="input-group"><label>Classe</label><input type="text" id="classe"></div>
+                    <div class="input-group"><label>Spécialisation</label><input type="text" id="specialisation"></div>
+                    <div class="input-group"><label>Peuple</label><input type="text" id="peuple"></div>
+                    <div class="input-group"><label>Origine</label><input type="text" id="origine"></div>
+                </div>
+                <div class="grid-2" style="margin-top:10px;">
+                    <div class="input-group"><label>Tendance Sociale</label><input type="text" id="tendance_soc"></div>
+                    <div class="input-group"><label>Tendance Morale</label><input type="text" id="tendance_mor"></div>
+                </div>
+                <div class="input-group full-width" style="margin-top:10px;">
+                    <label>Points d'Expérience</label><input type="number" id="xp">
+                </div>
+            </section>
+
+            <section class="stats-grid">
+                <div class="stat-box red-border">
+                    <label>FORCE</label>
+                    <input type="number" id="val_force" class="main-stat" value="10">
+                    <div class="mod-box roll-trigger" onclick="rollStat('force')">
+                        <i class="fas fa-dice-d20"></i> <span id="mod_force">+0</span>
+                    </div>
+                    <div class="save-row">
+                        <label class="click-text" onclick="rollSimple('Sauv. Force', 'sauv_force')"><i class="fas fa-dice-d20"></i> Sauv</label>
+                        <input type="number" id="sauv_force">
+                        <label>M</label><input type="checkbox" id="maitrise_force">
+                    </div>
+                </div>
+                <div class="stat-box green-border">
+                    <label>DEXTÉRITÉ</label>
+                    <input type="number" id="val_dex" class="main-stat" value="10">
+                    <div class="mod-box roll-trigger" onclick="rollStat('dex')">
+                        <i class="fas fa-dice-d20"></i> <span id="mod_dex">+0</span>
+                    </div>
+                    <div class="save-row">
+                        <label class="click-text" onclick="rollSimple('Sauv. Dex', 'sauv_dex')"><i class="fas fa-dice-d20"></i> Sauv</label>
+                        <input type="number" id="sauv_dex">
+                        <label>M</label><input type="checkbox" id="maitrise_dex">
+                    </div>
+                </div>
+                <div class="stat-box orange-border">
+                    <label>CONSTITUTION</label>
+                    <input type="number" id="val_con" class="main-stat" value="10">
+                    <div class="mod-box roll-trigger" onclick="rollStat('con')">
+                        <i class="fas fa-dice-d20"></i> <span id="mod_con">+0</span>
+                    </div>
+                    <div class="save-row">
+                        <label class="click-text" onclick="rollSimple('Sauv. Con', 'sauv_con')"><i class="fas fa-dice-d20"></i> Sauv</label>
+                        <input type="number" id="sauv_con">
+                        <label>M</label><input type="checkbox" id="maitrise_con">
+                    </div>
+                </div>
+                <div class="stat-box blue-border">
+                    <label>INTELLIGENCE</label>
+                    <input type="number" id="val_int" class="main-stat" value="10">
+                    <div class="mod-box roll-trigger" onclick="rollStat('int')">
+                        <i class="fas fa-dice-d20"></i> <span id="mod_int">+0</span>
+                    </div>
+                    <div class="save-row">
+                        <label class="click-text" onclick="rollSimple('Sauv. Int', 'sauv_int')"><i class="fas fa-dice-d20"></i> Sauv</label>
+                        <input type="number" id="sauv_int">
+                        <label>M</label><input type="checkbox" id="maitrise_int">
+                    </div>
+                </div>
+                <div class="stat-box purple-border">
+                    <label>SAGESSE</label>
+                    <input type="number" id="val_sag" class="main-stat" value="10">
+                    <div class="mod-box roll-trigger" onclick="rollStat('sag')">
+                        <i class="fas fa-dice-d20"></i> <span id="mod_sag">+0</span>
+                    </div>
+                    <div class="save-row">
+                        <label class="click-text" onclick="rollSimple('Sauv. Sag', 'sauv_sag')"><i class="fas fa-dice-d20"></i> Sauv</label>
+                        <input type="number" id="sauv_sag">
+                        <label>M</label><input type="checkbox" id="maitrise_sag">
+                    </div>
+                </div>
+                <div class="stat-box yellow-border">
+                    <label>CHARISME</label>
+                    <input type="number" id="val_cha" class="main-stat" value="10">
+                    <div class="mod-box roll-trigger" onclick="rollStat('cha')">
+                        <i class="fas fa-dice-d20"></i> <span id="mod_cha">+0</span>
+                    </div>
+                    <div class="save-row">
+                        <label class="click-text" onclick="rollSimple('Sauv. Cha', 'sauv_cha')"><i class="fas fa-dice-d20"></i> Sauv</label>
+                        <input type="number" id="sauv_cha">
+                        <label>M</label><input type="checkbox" id="maitrise_cha">
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="grid-2">
+                     <div class="input-group"><label>Bonus de Maîtrise</label><input type="number" id="bonus_maitrise" value="2"></div>
+                     <div class="input-group"><label>Perception Passive</label><input type="number" id="perception_passive"></div>
+                </div>
+            </section>
+        </div>
+
+        <div id="tab-skills" class="tab-content">
+            <section class="card">
+                <h3>Compétences</h3>
+                <ul class="skill-list">
+                    <li><input type="checkbox" id="m_acro"><label class="click-text" onclick="rollSimple('Acrobaties', 'v_acro')">Acrobaties (DEX)</label><input type="number" id="v_acro"></li>
+                    <li><input type="checkbox" id="m_arca"><label class="click-text" onclick="rollSimple('Arcanes', 'v_arca')">Arcanes (INT)</label><input type="number" id="v_arca"></li>
+                    <li><input type="checkbox" id="m_ath"><label class="click-text" onclick="rollSimple('Athlétisme', 'v_ath')">Athlétisme (FOR)</label><input type="number" id="v_ath"></li>
+                    <li><input type="checkbox" id="m_disc"><label class="click-text" onclick="rollSimple('Discrétion', 'v_disc')">Discrétion (DEX)</label><input type="number" id="v_disc"></li>
+                    <li><input type="checkbox" id="m_dres"><label class="click-text" onclick="rollSimple('Dressage', 'v_dres')">Dressage (SAG)</label><input type="number" id="v_dres"></li>
+                    <li><input type="checkbox" id="m_esca"><label class="click-text" onclick="rollSimple('Escamotage', 'v_esca')">Escamotage (DEX)</label><input type="number" id="v_esca"></li>
+                    <li><input type="checkbox" id="m_hist"><label class="click-text" onclick="rollSimple('Histoire', 'v_hist')">Histoire (INT)</label><input type="number" id="v_hist"></li>
+                    <li><input type="checkbox" id="m_inti"><label class="click-text" onclick="rollSimple('Intimidation', 'v_inti')">Intimidation (CHA)</label><input type="number" id="v_inti"></li>
+                    <li><input type="checkbox" id="m_inve"><label class="click-text" onclick="rollSimple('Investigation', 'v_inve')">Investigation (INT)</label><input type="number" id="v_inve"></li>
+                    <li><input type="checkbox" id="m_med"><label class="click-text" onclick="rollSimple('Médecine', 'v_med')">Médecine (SAG)</label><input type="number" id="v_med"></li>
+                    <li><input type="checkbox" id="m_nat"><label class="click-text" onclick="rollSimple('Nature', 'v_nat')">Nature (INT)</label><input type="number" id="v_nat"></li>
+                    <li><input type="checkbox" id="m_perc"><label class="click-text" onclick="rollSimple('Perception', 'v_perc')">Perception (SAG)</label><input type="number" id="v_perc"></li>
+                    <li><input type="checkbox" id="m_persp"><label class="click-text" onclick="rollSimple('Perspicacité', 'v_persp')">Perspicacité (SAG)</label><input type="number" id="v_persp"></li>
+                    <li><input type="checkbox" id="m_persu"><label class="click-text" onclick="rollSimple('Persuasion', 'v_persu')">Persuasion (CHA)</label><input type="number" id="v_persu"></li>
+                    <li><input type="checkbox" id="m_rel"><label class="click-text" onclick="rollSimple('Religion', 'v_rel')">Religion (INT)</label><input type="number" id="v_rel"></li>
+                    <li><input type="checkbox" id="m_rep"><label class="click-text" onclick="rollSimple('Représentation', 'v_rep')">Représentation (CHA)</label><input type="number" id="v_rep"></li>
+                    <li><input type="checkbox" id="m_sup"><label class="click-text" onclick="rollSimple('Supercherie', 'v_sup')">Supercherie (CHA)</label><input type="number" id="v_sup"></li>
+                    <li><input type="checkbox" id="m_sur"><label class="click-text" onclick="rollSimple('Survie', 'v_sur')">Survie (SAG)</label><input type="number" id="v_sur"></li>
+                </ul>
+            </section>
+            
+            <section class="card">
+                 <h3>Maîtrises & Langues</h3>
+                 <textarea id="maitrises_langues" rows="5"></textarea>
+            </section>
+        </div>
+
+        <div id="tab-combat" class="tab-content">
+            <div class="combat-grid">
+                <div class="c-box"><label>Initiative</label><input type="number" id="init"></div>
+                <div class="c-box"><label>CA</label><input type="number" id="ca"></div>
+                <div class="c-box"><label>Vitesse</label><input type="text" id="vitesse"></div>
+            </div>
+            
+            <div class="combat-grid" style="margin-top:10px;">
+                <div class="c-box small-label"><label>Atk CàC</label><input type="text" id="atk_cac"></div>
+                <div class="c-box small-label"><label>Atk Dist.</label><input type="text" id="atk_dist"></div>
+                <div class="c-box small-label"><label>Atk Mag.</label><input type="text" id="atk_mag"></div>
+            </div>
+
+            <section class="card hp-section">
+                <h3>Vitalité</h3>
+                <div class="hp-row">
+                    <div class="input-group"><label>PV Max</label><input type="number" id="pv_max"></div>
+                    <div class="input-group"><label>PV Actuels</label><input type="number" id="pv_actuels" class="big-input"></div>
+                </div>
+                <div class="hp-row">
+                    <div class="input-group"><label>Dés de Vie (Total)</label><input type="text" id="dv_total"></div>
+                    <div class="input-group"><label>Dépensés</label><input type="number" id="dv_depenses"></div>
+                </div>
+                <div class="input-group full-width" style="margin-top:10px; border-top:1px solid #444; padding-top:5px;">
+                    <label>Niveau d'Épuisement</label><input type="number" id="epuisement" min="0" max="6">
+                </div>
+                
+                <div class="death-saves">
+                    <label>Sauv. Contre la Mort</label>
+                    <div class="check-row">Succès: <input type="checkbox" id="ds_s1"><input type="checkbox" id="ds_s2"><input type="checkbox" id="ds_s3"></div>
+                    <div class="check-row">Échecs: <input type="checkbox" id="ds_e1"><input type="checkbox" id="ds_e2"><input type="checkbox" id="ds_e3"></div>
+                </div>
+            </section>
+
+            <section class="card">
+                <h3>Armes & Sorts</h3>
+                <div class="weapon-row header-w"><span>Nom</span><span>Atk</span><span>Dégâts</span></div>
+                <div class="weapon-row"><input type="text" id="w1_nom"><input type="text" id="w1_atk"><input type="text" id="w1_dmg"></div>
+                <div class="weapon-row"><input type="text" id="w2_nom"><input type="text" id="w2_atk"><input type="text" id="w2_dmg"></div>
+                <div class="weapon-row"><input type="text" id="w3_nom"><input type="text" id="w3_atk"><input type="text" id="w3_dmg"></div>
+                <div class="weapon-row"><input type="text" id="w4_nom"><input type="text" id="w4_atk"><input type="text" id="w4_dmg"></div>
+            </section>
+        </div>
+
+        <div id="tab-details" class="tab-content">
+            
+            <section class="card magic-section">
+                <h3><i class="fas fa-hat-wizard"></i> Magie</h3>
+                <div class="grid-2">
+                    <div class="input-group"><label>Classe Lanceur</label><input type="text" id="magic_class"></div>
+                    <div class="input-group"><label>Caractéristique</label><input type="text" id="magic_stat"></div>
+                    <div class="input-group"><label>DD Sauvegarde</label><input type="number" id="magic_dd"></div>
+                    <div class="input-group"><label>Bonus Atk Sorts</label><input type="number" id="magic_atk"></div>
+                </div>
+            </section>
+
+            <section class="card">
+                <h3>Personnalité</h3>
+                <textarea id="traits" placeholder="Traits de personnalité" rows="2"></textarea>
+                <textarea id="ideal" placeholder="Idéal" rows="2"></textarea>
+                <textarea id="lien" placeholder="Lien" rows="2"></textarea>
+                <textarea id="defaut" placeholder="Défaut" rows="2"></textarea>
+            </section>
+            
+            <section class="card">
+                <h3>Équipement</h3>
+                <div class="money-grid">
+                    <div><label>PC</label><input type="number" id="monnaie_pc"></div>
+                    <div><label>PA</label><input type="number" id="monnaie_pa"></div>
+                    <div><label>PE</label><input type="number" id="monnaie_pe"></div>
+                    <div><label>PO</label><input type="number" id="monnaie_po" style="color:gold; border-color:gold;"></div>
+                    <div><label>PP</label><input type="number" id="monnaie_pp"></div>
+                </div>
+                <textarea id="equipement_liste" rows="10" placeholder="Liste d'équipement..."></textarea>
+            </section>
+            
+            <section class="card">
+                <h3>Description</h3>
+                <div class="grid-2">
+                    <div class="input-group"><label>Âge</label><input type="text" id="bio_age"></div>
+                    <div class="input-group"><label>Taille</label><input type="text" id="bio_taille"></div>
+                    <div class="input-group"><label>Poids</label><input type="text" id="bio_poids"></div>
+                    <div class="input-group"><label>Yeux</label><input type="text" id="bio_yeux"></div>
+                    <div class="input-group"><label>Peau</label><input type="text" id="bio_peau"></div>
+                    <div class="input-group"><label>Cheveux</label><input type="text" id="bio_cheveux"></div>
+                </div>
+                <textarea id="notes" rows="5" placeholder="Notes, Aptitudes, Capacités & Dons..."></textarea>
+            </section>
+        </div>
+
+    </main>
+
+    <div id="diceModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Test</h2>
+            <div class="roll-animation"><i class="fas fa-dice-d20"></i></div>
+            <div class="roll-details">
+                <span class="detail-box">d20: <b id="valDie">0</b></span>
+                <span class="math-sign">+</span>
+                <span class="detail-box">Mod: <b id="valMod">0</b></span>
+            </div>
+            <div class="roll-total-box">
+                <span class="label">RÉSULTAT</span>
+                <span id="valTotal">0</span>
+                <div id="critMessage" class="crit-msg"></div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <button class="nav-btn active" onclick="openTab('tab-main', this)">
+            <i class="fas fa-user-shield"></i><span>Perso</span>
+        </button>
+        <button class="nav-btn" onclick="openTab('tab-skills', this)">
+            <i class="fas fa-scroll"></i><span>Comp.</span>
+        </button>
+        <button class="nav-btn" onclick="openTab('tab-combat', this)">
+            <i class="fas fa-fist-raised"></i><span>Combat</span>
+        </button>
+        <button class="nav-btn" onclick="openTab('tab-details', this)">
+            <i class="fas fa-briefcase"></i><span>Sac/Bio</span>
+        </button>
+    </nav>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
