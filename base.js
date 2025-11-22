@@ -5,11 +5,14 @@ import { getApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.j
 // Initialisation de Firestore à partir de l'application initialisée dans l'HTML
 const app = getApp();
 const db = getFirestore(app);
-const COLLECTION_NAME = 'characters'; // Collection où les fiches seront stockées
+const COLLECTION_NAME = 'characters'; 
+
+let allInputs; // Déclaration globale
 
 document.addEventListener('DOMContentLoaded', () => {
-    // La sauvegarde locale est désactivée au profit de Firebase, mais le code de calcul reste
-    // const STORAGE_KEY = 'rnp_fiche_auto_v4';
+    
+    // Récupérer tous les inputs une fois le DOM chargé
+    allInputs = document.querySelectorAll('input, textarea');
 
     const skillMap = {
         'acro': 'dex', 'arca': 'int', 'ath': 'force', 'disc': 'dex',
@@ -19,9 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
         'sup': 'cha', 'sur': 'sag'
     };
     const stats = ['force', 'dex', 'con', 'int', 'sag', 'cha'];
-    let allInputs = document.querySelectorAll('input, textarea');
 
-    // --- MATHS & CALCULS AUTOMATIQUES (Inchangés) ---
+    // --- MATHS & CALCULS AUTOMATIQUES ---
     function getMod(score) { return Math.floor((score - 10) / 2); }
     function formatBonus(val) { return (val >= 0 ? '+' : '') + val; }
 
@@ -64,7 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- FIREBASE : SAUVEGARDE & CHARGEMENT ---
 
-    // Rendre les fonctions globales pour les boutons HTML
     window.saveData = async function() {
         const charIdInput = document.getElementById('char_id');
         const charId = charIdInput.value.trim();
@@ -81,6 +82,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 data[el.id] = (el.type === 'checkbox') ? el.checked : el.value;
             }
         });
+
+        // --- GESTION DES CAPACITÉS (LISTE DYNAMIQUE) ---
+        const abilityCards = document.querySelectorAll('#abilities-container .ability-card');
+        const abilitiesList = [];
+        
+        abilityCards.forEach(card => {
+            abilitiesList.push({
+                name: card.querySelector('.ability-name').value,
+                source: card.querySelector('.ability-source').value,
+                desc: card.querySelector('.ability-desc').value,
+                collapsed: card.classList.contains('collapsed') 
+            });
+        });
+        data.abilities_list = abilitiesList; 
+
+        // --- GESTION DES SORTS (LISTE DYNAMIQUE) ---
+        const spellCards = document.querySelectorAll('#spells-container .ability-card');
+        const spellsList = [];
+        
+        spellCards.forEach(card => {
+            spellsList.push({
+                name: card.querySelector('.ability-name').value,
+                level: card.querySelector('.ability-source').value,
+                desc: card.querySelector('.ability-desc').value,
+                slotsMax: card.querySelector('.spell-slots-max').value,
+                slotsUsed: card.querySelector('.spell-slots-used').value,
+                collapsed: card.classList.contains('collapsed') 
+            });
+        });
+        data.spells_list = spellsList; 
+
+        // --- FIN GESTION SORTS/CAPACITÉS ---
 
         try {
             const charRef = doc(db, COLLECTION_NAME, charId);
@@ -108,13 +141,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (docSnap.exists()) {
                 const data = docSnap.data();
+                
+                // Charger les inputs simples
                 allInputs.forEach(el => {
                     if (el.id && data[el.id] !== undefined) {
                         if (el.type === 'checkbox') el.checked = data[el.id];
                         else el.value = data[el.id];
                     }
                 });
-                
+
+                // --- GESTION DES CAPACITÉS (CHARGEMENT) ---
+                const abilityContainer = document.getElementById('abilities-container');
+                abilityContainer.innerHTML = ''; 
+                if (data.abilities_list && Array.isArray(data.abilities_list)) {
+                    data.abilities_list.forEach(ability => {
+                        addAbilityCard(ability);
+                    });
+                }
+
+                // --- GESTION DES SORTS (CHARGEMENT) ---
+                const spellContainer = document.getElementById('spells-container');
+                spellContainer.innerHTML = ''; 
+                if (data.spells_list && Array.isArray(data.spells_list)) {
+                    data.spells_list.forEach(spell => {
+                        addSpellCard(spell); 
+                    });
+                }
+                // --- FIN GESTION SORTS/CAPACITÉS ---
+
                 updateCalculations();
                 alert(`Fiche "${charId}" chargée avec succès !`);
             } else {
@@ -127,12 +181,92 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    // --- ÉCOUTEURS D'ÉVÉNEMENTS ---
+    // --- GESTION DES CAPACITÉS/SORTS (Fonctions d'ajout et suppression & COLLAPSE) ---
 
+    // Fonction de bascule (toggle) pour ouvrir/fermer la carte
+    window.toggleCollapse = function(headerElement) {
+        const card = headerElement.closest('.ability-card');
+        const content = card.querySelector('.ability-content');
+        
+        card.classList.toggle('collapsed');
+        
+        // Gérer le max-height pour l'animation CSS
+        if (content.style.maxHeight && content.style.maxHeight !== '0px') {
+            content.style.maxHeight = '0px';
+        } else {
+            content.style.maxHeight = content.scrollHeight + "px";
+        }
+    }
+
+
+    window.addAbilityCard = function(data = {}) {
+        const container = document.getElementById('abilities-container');
+        
+        const card = document.createElement('div');
+        
+        const isCollapsed = data.collapsed !== false; 
+        card.className = isCollapsed ? 'ability-card collapsed' : 'ability-card';
+        
+        card.innerHTML = `
+            <button class="remove-btn" onclick="this.closest('.ability-card').remove();">X</button>
+            <div class="ability-header" onclick="toggleCollapse(this)">
+                <input type="text" class="ability-name" placeholder="Nom de la capacité" value="${data.name || ''}" onclick="event.stopPropagation()">
+                <input type="text" class="ability-source" placeholder="(Classe/Peuple)" value="${data.source || ''}" onclick="event.stopPropagation()">
+                <i class="fas fa-chevron-down collapse-icon"></i>
+            </div>
+            <div class="ability-content">
+                <textarea class="ability-desc" rows="3" placeholder="Description de l'effet...">${data.desc || ''}</textarea>
+            </div>
+        `;
+        container.appendChild(card);
+        
+        if (!isCollapsed) {
+            const content = card.querySelector('.ability-content');
+            setTimeout(() => {
+                content.style.maxHeight = content.scrollHeight + "px";
+            }, 0);
+        }
+    }
+
+    // Fonction de création de carte de Sort
+    window.addSpellCard = function(data = {}) {
+        const container = document.getElementById('spells-container');
+        
+        const card = document.createElement('div');
+        
+        const isCollapsed = data.collapsed !== false; 
+        card.className = isCollapsed ? 'ability-card collapsed' : 'ability-card';
+        
+        card.innerHTML = `
+            <button class="remove-btn" onclick="this.closest('.ability-card').remove();">X</button>
+            <div class="ability-header" onclick="toggleCollapse(this)">
+                <input type="text" class="ability-name" placeholder="Nom du Sort" value="${data.name || ''}" onclick="event.stopPropagation()">
+                <input type="number" class="ability-source" placeholder="Niv." value="${data.level || ''}" style="width: 20%;" onclick="event.stopPropagation()">
+                <i class="fas fa-chevron-down collapse-icon"></i>
+            </div>
+            <div class="ability-content">
+                <textarea class="ability-desc" rows="3" placeholder="Portée, Composantes, Effet...">${data.desc || ''}</textarea>
+                <div style="font-size: 0.8em; margin-top: 5px;">
+                    <label>Slots:</label>
+                    <input type="number" class="spell-slots-max" placeholder="Max" value="${data.slotsMax || ''}" style="width: 30%;">
+                    <input type="number" class="spell-slots-used" placeholder="Utilisés" value="${data.slotsUsed || ''}" style="width: 30%;">
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+        
+        if (!isCollapsed) {
+            const content = card.querySelector('.ability-content');
+            setTimeout(() => {
+                content.style.maxHeight = content.scrollHeight + "px";
+            }, 0);
+        }
+    }
+    
+    // Écouteurs pour les calculs et le reset
     document.addEventListener('input', (e) => {
-        // Le auto-save est retiré. L'utilisateur doit cliquer sur "Sauver".
-        // On ne fait que mettre à jour les calculs en temps réel.
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+            // Déclencher les calculs pour les stats/compétences
             if (e.target.id === 'bonus_maitrise' || e.target.id.startsWith('val_') || 
                 e.target.id.startsWith('maitrise_') || e.target.id.startsWith('m_')) {
                 updateCalculations();
@@ -148,7 +282,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (el.type === 'checkbox') el.checked = false;
                     else el.value = '';
                 });
-                document.getElementById('val_force').value = 10; // Remettre les stats de base
+                // Valeurs par défaut des stats
+                document.getElementById('val_force').value = 10;
                 document.getElementById('val_dex').value = 10;
                 document.getElementById('val_con').value = 10;
                 document.getElementById('val_int').value = 10;
@@ -156,18 +291,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('val_cha').value = 10;
                 document.getElementById('niveau').value = 1;
                 document.getElementById('bonus_maitrise').value = 2;
+                
+                // Effacer les listes dynamiques
+                document.getElementById('abilities-container').innerHTML = '';
+                document.getElementById('spells-container').innerHTML = '';
 
                 updateCalculations();
             }
         });
     }
 
-    // Calcul initial au démarrage (basé sur les valeurs par défaut)
     updateCalculations(); 
 });
 
 
-// --- SYSTÈME DE DÉS (Inchangé) ---
+// --- SYSTÈME DE DÉS ---
 window.rollStat = function(statName) {
     const valInput = document.getElementById('val_' + statName);
     const score = parseInt(valInput.value) || 10;

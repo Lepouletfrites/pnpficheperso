@@ -506,3 +506,125 @@ input:focus, textarea:focus { border-color: var(--accent); outline: none; }
     color: white;
 }
 .load-btn:hover { background: #6a90ec; }
+
+/* --- CAPACITÉS --- */
+.ability-card {
+    background: var(--input);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.ability-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+    cursor: pointer; 
+    padding-right: 25px; /* Assurez-vous d'avoir ce padding pour l'icône ET le bouton Suppr. */
+    position: relative;
+}
+
+.ability-header input {
+    font-weight: bold;
+    font-size: 1rem;
+    background: transparent;
+    border: none;
+    padding: 0;
+    width: 60%;
+    color: var(--accent);
+}
+
+.ability-source {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.ability-card textarea {
+    margin-top: 5px;
+    font-size: 0.9rem;
+    padding: 8px;
+    min-height: 50px;
+}
+
+.remove-btn {
+    background: var(--danger);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.add-btn {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    background: rgba(122, 162, 247, 0.1);
+    color: var(--accent);
+    border: 1px dashed var(--accent);
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.add-btn:hover {
+    background: rgba(122, 162, 247, 0.2);
+}
+/* --- AJOUTS POUR LA FONCTIONNALITÉ COLLAPSE --- */
+
+/* Style pour le conteneur du contenu (Description) */
+.ability-content {
+    max-height: 0; /* Fermé par défaut */
+    overflow: hidden;
+    transition: max-height 0.3s ease-out; /* Animation douce */
+}
+
+/* Rendre l'en-tête cliquable et ajouter un espace pour l'icône */
+.ability-header {
+    cursor: pointer; 
+    padding-right: 25px; /* Espace pour l'icône */
+    position: relative;
+    border-radius: 5px;
+    transition: background 0.2s;
+}
+
+.ability-header:hover {
+    background: rgba(255, 255, 255, 0.05); /* Effet au survol */
+}
+
+/* L'icône de bascule (chevron) */
+.collapse-icon {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-90deg); /* Position de base (fermée) */
+    transition: transform 0.3s ease-out;
+    color: var(--text-muted);
+}
+
+/* État ouvert (retire la classe 'collapsed' via JS) */
+.ability-card:not(.collapsed) .ability-content {
+    /* Le JS va définir max-height = scrollHeight pour l'ouvrir */
+    max-height: auto; /* Fallback, JS gère l'ouverture */
+}
+
+.ability-card:not(.collapsed) .collapse-icon {
+    transform: translateY(-50%) rotate(0deg); /* L'icône pointe vers le bas (ouvert) */
+}
+
+/* Règle pour les inputs dans le header pour éviter qu'ils ne prennent toute la largeur */
+.ability-header input {
+    width: 45%; 
+}

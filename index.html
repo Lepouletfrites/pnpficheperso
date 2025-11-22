@@ -9,7 +9,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
-        // Vous n'aurez besoin que de l'initialisation dans cette partie
+        // Les constantes de configuration sont ici pour être accessibles par le script.js
         const firebaseConfig = {
             apiKey: "AIzaSyCNK9d02TCh2z9sWL2cGP_rvBKZsxl1TNc",
             authDomain: "ficherollandplay.firebaseapp.com",
@@ -134,8 +134,8 @@
 
             <section class="card">
                 <div class="grid-2">
-                     <div class="input-group"><label>Bonus de Maîtrise</label><input type="number" id="bonus_maitrise" value="2"></div>
-                     <div class="input-group"><label>Perception Passive</label><input type="number" id="perception_passive"></div>
+                        <div class="input-group"><label>Bonus de Maîtrise</label><input type="number" id="bonus_maitrise" value="2"></div>
+                        <div class="input-group"><label>Perception Passive</label><input type="number" id="perception_passive"></div>
                 </div>
             </section>
         </div>
@@ -215,10 +215,26 @@
             </section>
         </div>
 
-        <div id="tab-details" class="tab-content">
-            
+        <div id="tab-abilities" class="tab-content">
             <section class="card magic-section">
-                <h3><i class="fas fa-hat-wizard"></i> Magie</h3>
+                <h3><i class="fas fa-hat-wizard"></i> Points de Magie/Ki/Mana</h3>
+                <div class="grid-2">
+                    <div class="input-group"><label>Pool Max</label><input type="number" id="mp_max"></div>
+                    <div class="input-group"><label>Pool Actuel</label><input type="number" id="mp_actuel" class="big-input"></div>
+                </div>
+            </section>
+
+            <section class="card">
+                <h3><i class="fas fa-star"></i> Capacités & Dons</h3>
+                <div id="abilities-container">
+                    </div>
+                <button class="add-btn" onclick="addAbilityCard()">+ Ajouter une Capacité</button>
+            </section>
+        </div>
+
+        <div id="tab-spells" class="tab-content">
+            <section class="card magic-section">
+                <h3><i class="fas fa-scroll"></i> Statistiques de Magie</h3>
                 <div class="grid-2">
                     <div class="input-group"><label>Classe Lanceur</label><input type="text" id="magic_class"></div>
                     <div class="input-group"><label>Caractéristique</label><input type="text" id="magic_stat"></div>
@@ -228,13 +244,23 @@
             </section>
 
             <section class="card">
-                <h3>Personnalité</h3>
+                <h3>Sorts (Liste)</h3>
+                <div id="spells-container">
+                    </div>
+                <button class="add-btn" onclick="addSpellCard()">+ Ajouter un Sort</button>
+            </section>
+        </div>
+        
+        <div id="tab-details" class="tab-content">
+            
+            <section class="card">
+                <h3>Traits de Personnalité</h3>
                 <textarea id="traits" placeholder="Traits de personnalité" rows="2"></textarea>
                 <textarea id="ideal" placeholder="Idéal" rows="2"></textarea>
                 <textarea id="lien" placeholder="Lien" rows="2"></textarea>
                 <textarea id="defaut" placeholder="Défaut" rows="2"></textarea>
             </section>
-            
+
             <section class="card">
                 <h3>Équipement</h3>
                 <div class="money-grid">
@@ -248,7 +274,7 @@
             </section>
             
             <section class="card">
-                <h3>Description</h3>
+                <h3>Description Physique & Notes</h3>
                 <div class="grid-2">
                     <div class="input-group"><label>Âge</label><input type="text" id="bio_age"></div>
                     <div class="input-group"><label>Taille</label><input type="text" id="bio_taille"></div>
@@ -257,7 +283,7 @@
                     <div class="input-group"><label>Peau</label><input type="text" id="bio_peau"></div>
                     <div class="input-group"><label>Cheveux</label><input type="text" id="bio_cheveux"></div>
                 </div>
-                <textarea id="notes" rows="5" placeholder="Notes, Aptitudes, Capacités & Dons..."></textarea>
+                <textarea id="notes" rows="5" placeholder="Notes générales..."></textarea>
             </section>
         </div>
 
@@ -291,8 +317,14 @@
         <button class="nav-btn" onclick="openTab('tab-combat', this)">
             <i class="fas fa-fist-raised"></i><span>Combat</span>
         </button>
+        <button class="nav-btn" onclick="openTab('tab-abilities', this)">
+            <i class="fas fa-star"></i><span>Dons</span>
+        </button>
+        <button class="nav-btn" onclick="openTab('tab-spells', this)">
+            <i class="fas fa-magic"></i><span>Magie</span>
+        </button>
         <button class="nav-btn" onclick="openTab('tab-details', this)">
-            <i class="fas fa-briefcase"></i><span>Sac/Bio</span>
+            <i class="fas fa-briefcase"></i><span>Bio/Équip</span>
         </button>
     </nav>
 
