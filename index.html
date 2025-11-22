@@ -9,7 +9,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
-        // Les constantes de configuration sont ici pour être accessibles par le script.js
+        // REMPLACEZ LES VALEURS PAR VOS PROPRES CLÉS SI VOUS DÉPLOYEZ CE PROJET
         const firebaseConfig = {
             apiKey: "AIzaSyCNK9d02TCh2z9sWL2cGP_rvBKZsxl1TNc",
             authDomain: "ficherollandplay.firebaseapp.com",
@@ -28,7 +28,7 @@
             <input type="text" id="nom_perso" class="ghost-input" placeholder="Nom du Personnage">
             <div class="level-box">Niv <input type="number" id="niveau" value="1"></div>
         </div>
-        <button id="resetBtn" class="icon-btn"><i class="fas fa-trash-alt"></i></button>
+        <button id="resetBtn" class="icon-btn" title="Réinitialiser la fiche (sauf ID)"><i class="fas fa-trash-alt"></i></button>
     </header>
     
     <div class="firebase-bar">
@@ -42,6 +42,7 @@
         <div id="tab-main" class="tab-content active">
             
             <section class="card">
+                <h3>Informations de base</h3>
                 <div class="grid-2">
                     <div class="input-group"><label>Classe</label><input type="text" id="classe"></div>
                     <div class="input-group"><label>Spécialisation</label><input type="text" id="specialisation"></div>
@@ -66,8 +67,8 @@
                     </div>
                     <div class="save-row">
                         <label class="click-text" onclick="rollSimple('Sauv. Force', 'sauv_force')"><i class="fas fa-dice-d20"></i> Sauv</label>
-                        <input type="number" id="sauv_force">
-                        <label>M</label><input type="checkbox" id="maitrise_force">
+                        <input type="number" id="sauv_force" readonly>
+                        <label title="Maîtrise du jet de sauvegarde">M</label><input type="checkbox" id="maitrise_force">
                     </div>
                 </div>
                 <div class="stat-box green-border">
@@ -78,7 +79,7 @@
                     </div>
                     <div class="save-row">
                         <label class="click-text" onclick="rollSimple('Sauv. Dex', 'sauv_dex')"><i class="fas fa-dice-d20"></i> Sauv</label>
-                        <input type="number" id="sauv_dex">
+                        <input type="number" id="sauv_dex" readonly>
                         <label>M</label><input type="checkbox" id="maitrise_dex">
                     </div>
                 </div>
@@ -90,7 +91,7 @@
                     </div>
                     <div class="save-row">
                         <label class="click-text" onclick="rollSimple('Sauv. Con', 'sauv_con')"><i class="fas fa-dice-d20"></i> Sauv</label>
-                        <input type="number" id="sauv_con">
+                        <input type="number" id="sauv_con" readonly>
                         <label>M</label><input type="checkbox" id="maitrise_con">
                     </div>
                 </div>
@@ -102,7 +103,7 @@
                     </div>
                     <div class="save-row">
                         <label class="click-text" onclick="rollSimple('Sauv. Int', 'sauv_int')"><i class="fas fa-dice-d20"></i> Sauv</label>
-                        <input type="number" id="sauv_int">
+                        <input type="number" id="sauv_int" readonly>
                         <label>M</label><input type="checkbox" id="maitrise_int">
                     </div>
                 </div>
@@ -114,7 +115,7 @@
                     </div>
                     <div class="save-row">
                         <label class="click-text" onclick="rollSimple('Sauv. Sag', 'sauv_sag')"><i class="fas fa-dice-d20"></i> Sauv</label>
-                        <input type="number" id="sauv_sag">
+                        <input type="number" id="sauv_sag" readonly>
                         <label>M</label><input type="checkbox" id="maitrise_sag">
                     </div>
                 </div>
@@ -126,52 +127,55 @@
                     </div>
                     <div class="save-row">
                         <label class="click-text" onclick="rollSimple('Sauv. Cha', 'sauv_cha')"><i class="fas fa-dice-d20"></i> Sauv</label>
-                        <input type="number" id="sauv_cha">
+                        <input type="number" id="sauv_cha" readonly>
                         <label>M</label><input type="checkbox" id="maitrise_cha">
                     </div>
                 </div>
             </section>
 
             <section class="card">
+                <h3>Bonus Généraux</h3>
                 <div class="grid-2">
                         <div class="input-group"><label>Bonus de Maîtrise</label><input type="number" id="bonus_maitrise" value="2"></div>
-                        <div class="input-group"><label>Perception Passive</label><input type="number" id="perception_passive"></div>
+                        <div class="input-group"><label>Perception Passive</label><input type="number" id="perception_passive" readonly></div>
                 </div>
             </section>
         </div>
 
         <div id="tab-skills" class="tab-content">
+            
             <section class="card">
                 <h3>Compétences</h3>
                 <ul class="skill-list">
-                    <li><input type="checkbox" id="m_acro"><label class="click-text" onclick="rollSimple('Acrobaties', 'v_acro')">Acrobaties (DEX)</label><input type="number" id="v_acro"></li>
-                    <li><input type="checkbox" id="m_arca"><label class="click-text" onclick="rollSimple('Arcanes', 'v_arca')">Arcanes (INT)</label><input type="number" id="v_arca"></li>
-                    <li><input type="checkbox" id="m_ath"><label class="click-text" onclick="rollSimple('Athlétisme', 'v_ath')">Athlétisme (FOR)</label><input type="number" id="v_ath"></li>
-                    <li><input type="checkbox" id="m_disc"><label class="click-text" onclick="rollSimple('Discrétion', 'v_disc')">Discrétion (DEX)</label><input type="number" id="v_disc"></li>
-                    <li><input type="checkbox" id="m_dres"><label class="click-text" onclick="rollSimple('Dressage', 'v_dres')">Dressage (SAG)</label><input type="number" id="v_dres"></li>
-                    <li><input type="checkbox" id="m_esca"><label class="click-text" onclick="rollSimple('Escamotage', 'v_esca')">Escamotage (DEX)</label><input type="number" id="v_esca"></li>
-                    <li><input type="checkbox" id="m_hist"><label class="click-text" onclick="rollSimple('Histoire', 'v_hist')">Histoire (INT)</label><input type="number" id="v_hist"></li>
-                    <li><input type="checkbox" id="m_inti"><label class="click-text" onclick="rollSimple('Intimidation', 'v_inti')">Intimidation (CHA)</label><input type="number" id="v_inti"></li>
-                    <li><input type="checkbox" id="m_inve"><label class="click-text" onclick="rollSimple('Investigation', 'v_inve')">Investigation (INT)</label><input type="number" id="v_inve"></li>
-                    <li><input type="checkbox" id="m_med"><label class="click-text" onclick="rollSimple('Médecine', 'v_med')">Médecine (SAG)</label><input type="number" id="v_med"></li>
-                    <li><input type="checkbox" id="m_nat"><label class="click-text" onclick="rollSimple('Nature', 'v_nat')">Nature (INT)</label><input type="number" id="v_nat"></li>
-                    <li><input type="checkbox" id="m_perc"><label class="click-text" onclick="rollSimple('Perception', 'v_perc')">Perception (SAG)</label><input type="number" id="v_perc"></li>
-                    <li><input type="checkbox" id="m_persp"><label class="click-text" onclick="rollSimple('Perspicacité', 'v_persp')">Perspicacité (SAG)</label><input type="number" id="v_persp"></li>
-                    <li><input type="checkbox" id="m_persu"><label class="click-text" onclick="rollSimple('Persuasion', 'v_persu')">Persuasion (CHA)</label><input type="number" id="v_persu"></li>
-                    <li><input type="checkbox" id="m_rel"><label class="click-text" onclick="rollSimple('Religion', 'v_rel')">Religion (INT)</label><input type="number" id="v_rel"></li>
-                    <li><input type="checkbox" id="m_rep"><label class="click-text" onclick="rollSimple('Représentation', 'v_rep')">Représentation (CHA)</label><input type="number" id="v_rep"></li>
-                    <li><input type="checkbox" id="m_sup"><label class="click-text" onclick="rollSimple('Supercherie', 'v_sup')">Supercherie (CHA)</label><input type="number" id="v_sup"></li>
-                    <li><input type="checkbox" id="m_sur"><label class="click-text" onclick="rollSimple('Survie', 'v_sur')">Survie (SAG)</label><input type="number" id="v_sur"></li>
+                    <li><input type="checkbox" id="m_acro"><label class="click-text" onclick="rollSimple('Acrobaties', 'v_acro')">Acrobaties (DEX)</label><input type="number" id="v_acro" readonly></li>
+                    <li><input type="checkbox" id="m_arca"><label class="click-text" onclick="rollSimple('Arcanes', 'v_arca')">Arcanes (INT)</label><input type="number" id="v_arca" readonly></li>
+                    <li><input type="checkbox" id="m_ath"><label class="click-text" onclick="rollSimple('Athlétisme', 'v_ath')">Athlétisme (FOR)</label><input type="number" id="v_ath" readonly></li>
+                    <li><input type="checkbox" id="m_disc"><label class="click-text" onclick="rollSimple('Discrétion', 'v_disc')">Discrétion (DEX)</label><input type="number" id="v_disc" readonly></li>
+                    <li><input type="checkbox" id="m_dres"><label class="click-text" onclick="rollSimple('Dressage', 'v_dres')">Dressage (SAG)</label><input type="number" id="v_dres" readonly></li>
+                    <li><input type="checkbox" id="m_esca"><label class="click-text" onclick="rollSimple('Escamotage', 'v_esca')">Escamotage (DEX)</label><input type="number" id="v_esca" readonly></li>
+                    <li><input type="checkbox" id="m_hist"><label class="click-text" onclick="rollSimple('Histoire', 'v_hist')">Histoire (INT)</label><input type="number" id="v_hist" readonly></li>
+                    <li><input type="checkbox" id="m_inti"><label class="click-text" onclick="rollSimple('Intimidation', 'v_inti')">Intimidation (CHA)</label><input type="number" id="v_inti" readonly></li>
+                    <li><input type="checkbox" id="m_inve"><label class="click-text" onclick="rollSimple('Investigation', 'v_inve')">Investigation (INT)</label><input type="number" id="v_inve" readonly></li>
+                    <li><input type="checkbox" id="m_med"><label class="click-text" onclick="rollSimple('Médecine', 'v_med')">Médecine (SAG)</label><input type="number" id="v_med" readonly></li>
+                    <li><input type="checkbox" id="m_nat"><label class="click-text" onclick="rollSimple('Nature', 'v_nat')">Nature (INT)</label><input type="number" id="v_nat" readonly></li>
+                    <li><input type="checkbox" id="m_perc"><label class="click-text" onclick="rollSimple('Perception', 'v_perc')">Perception (SAG)</label><input type="number" id="v_perc" readonly></li>
+                    <li><input type="checkbox" id="m_persp"><label class="click-text" onclick="rollSimple('Perspicacité', 'v_persp')">Perspicacité (SAG)</label><input type="number" id="v_persp" readonly></li>
+                    <li><input type="checkbox" id="m_persu"><label class="click-text" onclick="rollSimple('Persuasion', 'v_persu')">Persuasion (CHA)</label><input type="number" id="v_persu" readonly></li>
+                    <li><input type="checkbox" id="m_rel"><label class="click-text" onclick="rollSimple('Religion', 'v_rel')">Religion (INT)</label><input type="number" id="v_rel" readonly></li>
+                    <li><input type="checkbox" id="m_rep"><label class="click-text" onclick="rollSimple('Représentation', 'v_rep')">Représentation (CHA)</label><input type="number" id="v_rep" readonly></li>
+                    <li><input type="checkbox" id="m_sup"><label class="click-text" onclick="rollSimple('Supercherie', 'v_sup')">Supercherie (CHA)</label><input type="number" id="v_sup" readonly></li>
+                    <li><input type="checkbox" id="m_sur"><label class="click-text" onclick="rollSimple('Survie', 'v_sur')">Survie (SAG)</label><input type="number" id="v_sur" readonly></li>
                 </ul>
             </section>
             
             <section class="card">
-                 <h3>Maîtrises & Langues</h3>
+                 <h3>Maîtrises & Langues (Armures, Outils, etc.)</h3>
                  <textarea id="maitrises_langues" rows="5"></textarea>
             </section>
         </div>
 
         <div id="tab-combat" class="tab-content">
+            
             <div class="combat-grid">
                 <div class="c-box"><label>Initiative</label><input type="number" id="init"></div>
                 <div class="c-box"><label>CA</label><input type="number" id="ca"></div>
@@ -179,9 +183,9 @@
             </div>
             
             <div class="combat-grid" style="margin-top:10px;">
-                <div class="c-box small-label"><label>Atk CàC</label><input type="text" id="atk_cac"></div>
-                <div class="c-box small-label"><label>Atk Dist.</label><input type="text" id="atk_dist"></div>
-                <div class="c-box small-label"><label>Atk Mag.</label><input type="text" id="atk_mag"></div>
+                <div class="c-box small-label"><label>Mod CàC</label><input type="text" id="atk_cac" readonly></div>
+                <div class="c-box small-label"><label>Mod Dist.</label><input type="text" id="atk_dist" readonly></div>
+                <div class="c-box small-label"><label>Atk Mag.</label><input type="text" id="atk_mag" readonly></div>
             </div>
 
             <section class="card hp-section">
@@ -206,16 +210,17 @@
             </section>
 
             <section class="card">
-                <h3>Armes & Sorts</h3>
+                <h3>Armes & Attaques Spéciales</h3>
                 <div class="weapon-row header-w"><span>Nom</span><span>Atk</span><span>Dégâts</span></div>
-                <div class="weapon-row"><input type="text" id="w1_nom"><input type="text" id="w1_atk"><input type="text" id="w1_dmg"></div>
-                <div class="weapon-row"><input type="text" id="w2_nom"><input type="text" id="w2_atk"><input type="text" id="w2_dmg"></div>
-                <div class="weapon-row"><input type="text" id="w3_nom"><input type="text" id="w3_atk"><input type="text" id="w3_dmg"></div>
-                <div class="weapon-row"><input type="text" id="w4_nom"><input type="text" id="w4_atk"><input type="text" id="w4_dmg"></div>
+                <div class="weapon-row"><input type="text" id="w1_nom" placeholder="Arme 1 / Sort 1"><input type="text" id="w1_atk" placeholder="+x"><input type="text" id="w1_dmg" placeholder="Dégâts + Mod"></div>
+                <div class="weapon-row"><input type="text" id="w2_nom" placeholder="Arme 2 / Sort 2"><input type="text" id="w2_atk" placeholder="+x"><input type="text" id="w2_dmg" placeholder="Dégâts + Mod"></div>
+                <div class="weapon-row"><input type="text" id="w3_nom" placeholder="Arme 3 / Sort 3"><input type="text" id="w3_atk" placeholder="+x"><input type="text" id="w3_dmg" placeholder="Dégâts + Mod"></div>
+                <div class="weapon-row"><input type="text" id="w4_nom" placeholder="Arme 4 / Sort 4"><input type="text" id="w4_atk" placeholder="+x"><input type="text" id="w4_dmg" placeholder="Dégâts + Mod"></div>
             </section>
         </div>
 
         <div id="tab-abilities" class="tab-content">
+            
             <section class="card magic-section">
                 <h3><i class="fas fa-hat-wizard"></i> Points de Magie/Ki/Mana</h3>
                 <div class="grid-2">
@@ -233,13 +238,20 @@
         </div>
 
         <div id="tab-spells" class="tab-content">
+            
             <section class="card magic-section">
                 <h3><i class="fas fa-scroll"></i> Statistiques de Magie</h3>
                 <div class="grid-2">
                     <div class="input-group"><label>Classe Lanceur</label><input type="text" id="magic_class"></div>
-                    <div class="input-group"><label>Caractéristique</label><input type="text" id="magic_stat"></div>
-                    <div class="input-group"><label>DD Sauvegarde</label><input type="number" id="magic_dd"></div>
-                    <div class="input-group"><label>Bonus Atk Sorts</label><input type="number" id="magic_atk"></div>
+                    
+                    <div class="input-group">
+                        <label>Caractéristique (INT/SAG/CHA)</label>
+                        <input type="text" id="stat_magie_id" value="int" style="text-transform:uppercase;">
+                    </div>
+                    
+                    <div class="input-group"><label>DD Sauvegarde</label><input type="number" id="magic_dd" readonly></div>
+                    
+                    <div class="input-group"><label>Bonus Atk Sorts</label><input type="text" id="magic_atk" readonly></div>
                 </div>
             </section>
 
@@ -319,16 +331,16 @@
             <i class="fas fa-fist-raised"></i><span>Combat</span>
         </button>
         <button class="nav-btn" onclick="openTab('tab-abilities', this)">
-            <i class="fas fa-star"></i><span>Dons</span>
+            <i class="fas fa-star"></i><span>Capacités</span>
         </button>
         <button class="nav-btn" onclick="openTab('tab-spells', this)">
-            <i class="fas fa-magic"></i><span>Magie</span>
+            <i class="fas fa-hat-wizard"></i><span>Sorts</span>
         </button>
         <button class="nav-btn" onclick="openTab('tab-details', this)">
-            <i class="fas fa-briefcase"></i><span>Bio/Équip</span>
+            <i class="fas fa-briefcase"></i><span>Détails</span>
         </button>
     </nav>
-
+    
     <script type="module" src="base.js"></script>
 </body>
 </html>
