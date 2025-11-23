@@ -38,12 +38,31 @@ function getStatMod(statCode) {
     return getMod(score);
 }
 
+/** Calcule le Bonus de Maîtrise en fonction du Niveau (Règles 5e) */
+function calculateProficiencyBonus(level) {
+    if (level >= 1 && level <= 4) return 2;
+    if (level >= 5 && level <= 8) return 3;
+    if (level >= 9 && level <= 12) return 4;
+    if (level >= 13 && level <= 16) return 5;
+    if (level >= 17 && level <= 20) return 6;
+    return 2; // Niveau 0 ou niveau > 20 par défaut (peut être ajusté)
+}
+
+
 /** Fonction principale de mise à jour de tous les calculs automatiques */
 window.updateCalculations = function() {
+    // 1. Calcul automatique du Bonus de Maîtrise
+    const niveauInput = document.getElementById('niveau');
+    const niveau = parseInt(niveauInput ? niveauInput.value : 1) || 1;
+    
+    const profBonus = calculateProficiencyBonus(niveau);
+    
+    // Met à jour l'input readonly du Bonus de Maîtrise
     const profBonusEl = document.getElementById('bonus_maitrise');
-    const profBonus = parseInt(profBonusEl ? profBonusEl.value : 0) || 0;
+    if (profBonusEl) profBonusEl.value = profBonus;
 
-    // 1. Calcul des Modificateurs et des Jets de Sauvegarde
+
+    // 2. Calcul des Modificateurs et des Jets de Sauvegarde
     stats.forEach(stat => {
         const valInput = document.getElementById('val_' + stat);
         if(!valInput) return; 
@@ -91,7 +110,7 @@ window.updateCalculations = function() {
     const atkMagInputSpells = document.getElementById('magic_atk');
     if (atkMagInputSpells) atkMagInputSpells.value = formatBonus(attaqueMagique);
 
-    // --- CALCULS DES ARMES INDIVIDUELLES (NOUVEAU) ---
+    // --- CALCULS DES ARMES INDIVIDUELLES ---
     for (let i = 1; i <= 4; i++) {
         const statInput = document.getElementById(`w${i}_stat`);
         const masteryCheck = document.getElementById(`w${i}_maitrise`);
@@ -118,7 +137,7 @@ window.updateCalculations = function() {
     // --- FIN CALCULS DE COMBAT AUTOMATIQUES ---
 
 
-    // 2. Calcul des Compétences (inchangé)
+    // 3. Calcul des Compétences
     for (const [skillCode, statCode] of Object.entries(skillMap)) {
         const mod = getStatMod(statCode); 
         const skillCheck = document.getElementById('m_' + skillCode);
@@ -130,7 +149,7 @@ window.updateCalculations = function() {
         }
     }
     
-    // 3. Calcul de la Perception Passive (inchangé)
+    // 4. Calcul de la Perception Passive
     const percValInput = document.getElementById('v_perc');
     const passPercInput = document.getElementById('perception_passive');
 
@@ -142,7 +161,7 @@ window.updateCalculations = function() {
 
 
 // --- GESTION DES CARTES DYNAMIQUES (CAPACITÉS & SORTS - INCHANGÉ) ---
-// Note: Le code complet des fonctions dynamiques est conservé pour la complexité.
+// ... (Fonctions inchangées : autoResizeTextarea, toggleCollapse, resizeAllCards, addAbilityCard, addSpellCard) ...
 
 window.autoResizeTextarea = function(el) {
     if (el.offsetParent === null) return; 
@@ -240,6 +259,7 @@ window.addSpellCard = function(data = {}) {
 
 
 // --- FIREBASE : SAUVEGARDE & CHARGEMENT (INCHANGÉ) ---
+// ... (Fonctions inchangées : saveData, loadData) ...
 
 window.saveData = async function() {
     const charIdInput = document.getElementById('char_id');
@@ -317,6 +337,7 @@ window.loadData = async function() {
             // 1. Charger les inputs simples
             allInputs.forEach(el => {
                 if (el.id && data[el.id] !== undefined) {
+                    // On exclut les inputs calculés 'readonly'
                     if (el.type === 'checkbox') el.checked = data[el.id];
                     if (!el.readOnly) {
                         el.value = data[el.id];
@@ -380,7 +401,7 @@ window.rollSimple = function(title, inputId) {
     launchModal(title, bonus);
 }
 
-/** Lance un jet de dé pour une attaque d'arme (NOUVEAU) */
+/** Lance un jet de dé pour une attaque d'arme */
 window.rollWeaponAttack = function(index) {
     const nameInput = document.getElementById(`w${index}_nom`);
     const atkInput = document.getElementById(`w${index}_atk`);
@@ -429,7 +450,7 @@ window.onclick = function(event) {
     if (event.target == modal) modal.style.display = "none";
 }
 
-// Navigation Onglets
+// Navigation Onglets (INCHANGÉ)
 window.openTab = function(id, btn) {
     document.querySelectorAll('.tab-content').forEach(d => d.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -454,10 +475,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('input', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.type === 'checkbox') {
             
-            // Check des inputs généraux et des statuts de maîtrise
-            if (e.target.id === 'bonus_maitrise' || e.target.id.startsWith('val_') || 
-                e.target.id.startsWith('maitrise_') || e.target.id.startsWith('m_') ||
-                e.target.id === 'stat_magie_id') {
+            // L'événement se déclenche si le Niveau, une Stat, une Maîtrise (Sauv/Comp) ou Stat Magique change
+            if (e.target.id === 'niveau' || e.target.id === 'stat_magie_id' || e.target.id.startsWith('val_') || 
+                e.target.id.startsWith('maitrise_') || e.target.id.startsWith('m_')) {
                 window.updateCalculations();
             }
             
@@ -484,7 +504,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if(input) input.value = 10;
                 });
                 document.getElementById('niveau').value = 1;
-                document.getElementById('bonus_maitrise').value = 2;
+                // 'bonus_maitrise' n'a plus besoin d'être réinitialisé, car il est calculé
                 const magieStatInput = document.getElementById('stat_magie_id');
                 if (magieStatInput) magieStatInput.value = 'int';
                 
