@@ -717,3 +717,66 @@ input:focus, textarea:focus { border-color: var(--accent); outline: none; }
 .roll-btn:hover {
     background-color: var(--color-blue-light);
 }
+
+
+/* ... (Règles précédentes pour .weapon-row sont inchangées) ... */
+
+/* Dégâts (25%) */
+.weapon-row input[id$="_dmg"] {
+    flex: 25; 
+    min-width: 80px;
+}
+.weapon-row.header-w span:nth-child(5) {
+    flex: 25;
+}
+
+
+/* Boutons de Jet de Dé (Ajustement des classes pour les différencier) */
+.roll-btn {
+    flex-shrink: 0; 
+    width: 30px; 
+    height: 30px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+}
+
+/* Bouton ATTAQUE (Bleu) */
+.atk-roll-btn {
+    background-color: var(--color-blue);
+    color: white;
+}
+.atk-roll-btn:hover {
+    background-color: var(--color-blue-light);
+}
+
+/* NOUVEAU: Bouton DÉGÂTS (Rouge/Orange) */
+.dmg-roll-btn {
+    background-color: var(--color-red); /* Utilisation du rouge pour les dégâts */
+    color: white;
+}
+.dmg-roll-btn:hover {
+    background-color: var(--color-red-light);
+}
+
+/* Style de la Modal pour gérer les deux types de jet */
+.d20-details {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+#damageDetails {
+    font-size: 1.1em;
+    font-style: italic;
+    color: var(--color-text-secondary);
+    margin-bottom: 10px;
+    text-align: center;
+    padding: 5px;
+}

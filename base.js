@@ -45,7 +45,41 @@ function calculateProficiencyBonus(level) {
     if (level >= 9 && level <= 12) return 4;
     if (level >= 13 && level <= 16) return 5;
     if (level >= 17 && level <= 20) return 6;
-    return 2; // Niveau 0 ou niveau > 20 par défaut (peut être ajusté)
+    return 2; 
+}
+
+/** * Parse et lance une formule de dés (ex: '1d8+4', '2d6-1').
+ * Retourne { total: w, rolls: [r1, r2...], mod: z }
+ */
+function rollDamageFormula(formula) {
+    let cleanedFormula = formula.toLowerCase().replace(/\s/g, '');
+    let totalRoll = 0;
+    let rolls = [];
+    let baseMod = 0;
+    
+    // Regex pour trouver les dés (NdX) ou le modificateur (+Z ou -Z)
+    const regex = /(\d*d\d+)|([+-]\d+)/g;
+    let match;
+
+    while ((match = regex.exec(cleanedFormula)) !== null) {
+        if (match[1]) { // Dés (NdX)
+            let [countStr, sidesStr] = match[1].split('d');
+            const count = parseInt(countStr) || 1;
+            const sides = parseInt(sidesStr);
+
+            for (let i = 0; i < count; i++) {
+                const roll = Math.floor(Math.random() * sides) + 1;
+                rolls.push(roll);
+                totalRoll += roll;
+            }
+        } else if (match[2]) { // Modificateur (+Z ou -Z)
+            baseMod += parseInt(match[2]);
+        }
+    }
+    
+    const finalTotal = totalRoll + baseMod;
+
+    return { total: finalTotal, rolls: rolls, mod: baseMod };
 }
 
 
@@ -161,7 +195,6 @@ window.updateCalculations = function() {
 
 
 // --- GESTION DES CARTES DYNAMIQUES (CAPACITÉS & SORTS - INCHANGÉ) ---
-// ... (Fonctions inchangées : autoResizeTextarea, toggleCollapse, resizeAllCards, addAbilityCard, addSpellCard) ...
 
 window.autoResizeTextarea = function(el) {
     if (el.offsetParent === null) return; 
@@ -214,6 +247,7 @@ window.addAbilityCard = function(data = {}) {
     const isCollapsed = data.collapsed !== false; 
     card.className = isCollapsed ? 'ability-card collapsed' : 'ability-card';
     
+    // Note: styles en ligne conservés ici pour les cartes dynamiques
     card.innerHTML = `
         <button class="remove-btn" onclick="this.closest('.ability-card').remove();">X</button>
         <div class="ability-header" onclick="toggleCollapse(this)">
@@ -237,6 +271,7 @@ window.addSpellCard = function(data = {}) {
     const isCollapsed = data.collapsed !== false; 
     card.className = isCollapsed ? 'ability-card collapsed' : 'ability-card';
     
+    // Note: styles en ligne conservés ici pour les cartes dynamiques
     card.innerHTML = `
         <button class="remove-btn" onclick="this.closest('.ability-card').remove();">X</button>
         <div class="ability-header" onclick="toggleCollapse(this)">
@@ -259,7 +294,6 @@ window.addSpellCard = function(data = {}) {
 
 
 // --- FIREBASE : SAUVEGARDE & CHARGEMENT (INCHANGÉ) ---
-// ... (Fonctions inchangées : saveData, loadData) ...
 
 window.saveData = async function() {
     const charIdInput = document.getElementById('char_id');
@@ -391,14 +425,16 @@ window.rollStat = function(statName) {
         'force': 'Force', 'dex': 'Dextérité', 'con': 'Constitution',
         'int': 'Intelligence', 'sag': 'Sagesse', 'cha': 'Charisme'
     };
-    launchModal("Test de " + (names[statName] || statName), mod);
+    // Appel à launchModal en mode d20
+    launchModal("Test de " + (names[statName] || statName), mod, undefined, undefined);
 }
 
 /** Lance un jet de dé pour une valeur simple (Compétences, Jet de Sauvegarde) */
 window.rollSimple = function(title, inputId) {
     const valInput = document.getElementById(inputId);
     const bonus = parseInt(valInput.value) || 0; 
-    launchModal(title, bonus);
+    // Appel à launchModal en mode d20
+    launchModal(title, bonus, undefined, undefined);
 }
 
 /** Lance un jet de dé pour une attaque d'arme */
@@ -407,38 +443,89 @@ window.rollWeaponAttack = function(index) {
     const atkInput = document.getElementById(`w${index}_atk`);
     
     const weaponName = nameInput?.value.trim() || `Arme ${index}`;
-    // Récupère le bonus d'attaque calculé dans l'input readonly
     const bonus = parseInt(atkInput?.value) || 0; 
     
-    launchModal(`Attaque : ${weaponName}`, bonus);
+    // Appel à launchModal en mode d20
+    launchModal(`Attaque : ${weaponName}`, bonus, undefined, undefined);
 }
 
-function launchModal(title, mod) {
-    const dieRoll = Math.floor(Math.random() * 20) + 1;
-    const total = dieRoll + mod;
-
-    document.getElementById('modalTitle').textContent = title;
-    document.getElementById('valDie').textContent = dieRoll;
-    document.getElementById('valMod').textContent = formatBonus(mod);
-    document.getElementById('valTotal').textContent = total;
-
-    const critMsg = document.getElementById('critMessage');
-    const totalBox = document.getElementById('valTotal');
-    critMsg.className = 'crit-msg'; 
-    critMsg.textContent = '';
-    totalBox.style.color = 'inherit'; 
-
-    if (dieRoll === 20) {
-        critMsg.textContent = "RÉUSSITE CRITIQUE !";
-        critMsg.classList.add('crit-success');
-        totalBox.style.color = 'var(--color-gold)'; 
-    } else if (dieRoll === 1) {
-        critMsg.textContent = "ÉCHEC CRITIQUE !";
-        critMsg.classList.add('crit-fail');
-        totalBox.style.color = 'var(--color-red)'; 
+/** Lance un jet de dé pour les dégâts d'arme */
+window.rollWeaponDamage = function(index) {
+    const nameInput = document.getElementById(`w${index}_nom`);
+    const dmgInput = document.getElementById(`w${index}_dmg`);
+    
+    const weaponName = nameInput?.value.trim() || `Arme ${index}`;
+    const formula = dmgInput?.value.trim() || '0'; 
+    
+    if (!formula || formula === '0') {
+        launchModal(`Dégâts : ${weaponName}`, 0, "Aucune formule de dégâts spécifiée (Ex: 1d8+4).", 0);
+        return;
     }
 
-    document.getElementById('diceModal').style.display = 'flex';
+    const result = rollDamageFormula(formula);
+    
+    // Créer la chaîne de détail (Ex: 8 + 4 + (+2))
+    let rollDetails = result.rolls.join(' + ');
+    rollDetails += (result.mod !== 0) ? ` ${formatBonus(result.mod)}` : '';
+    
+    // Appel à launchModal en mode dégâts
+    launchModal(`Dégâts : ${weaponName}`, result.mod, rollDetails, result.total);
+}
+
+
+/** Lance la modale de dé, gère les jets d20 ou les jets de dégâts */
+function launchModal(title, baseMod, rollsStr, total) {
+    const modal = document.getElementById('diceModal');
+    const isAttackRoll = rollsStr === undefined; 
+
+    document.getElementById('modalTitle').textContent = title;
+    
+    const d20DetailsEl = document.querySelector('.d20-details');
+    const damageDetailsEl = document.getElementById('damageDetails');
+    const critMsg = document.getElementById('critMessage');
+    const totalBox = document.getElementById('valTotal');
+
+    totalBox.style.color = 'inherit'; 
+    critMsg.textContent = '';
+    critMsg.className = 'crit-msg'; 
+    
+    if (isAttackRoll) {
+        // Logique d20 (Attack/Save/Skill)
+        const dieRoll = Math.floor(Math.random() * 20) + 1;
+        total = dieRoll + baseMod;
+        
+        d20DetailsEl.style.display = 'flex';
+        damageDetailsEl.style.display = 'none';
+        
+        // Mettre à jour l'icône de la modale en d20
+        modal.querySelector('.roll-animation i').className = 'fas fa-dice-d20';
+
+        document.getElementById('valDie').textContent = dieRoll;
+        document.getElementById('valMod').textContent = formatBonus(baseMod);
+
+        if (dieRoll === 20) {
+            critMsg.textContent = "RÉUSSITE CRITIQUE !";
+            critMsg.classList.add('crit-success');
+            totalBox.style.color = 'var(--color-gold)'; 
+        } else if (dieRoll === 1) {
+            critMsg.textContent = "ÉCHEC CRITIQUE !";
+            critMsg.classList.add('crit-fail');
+            totalBox.style.color = 'var(--color-red)'; 
+        }
+        
+    } else {
+        // Logique Dégâts (Damage)
+        d20DetailsEl.style.display = 'none';
+        damageDetailsEl.style.display = 'block';
+        damageDetailsEl.textContent = `Détail: ${rollsStr}`;
+        totalBox.style.color = 'var(--color-red)'; 
+        
+        // Mettre à jour l'icône de la modale en éclair
+        modal.querySelector('.roll-animation i').className = 'fas fa-bolt';
+    }
+    
+    document.getElementById('valTotal').textContent = total;
+    modal.style.display = 'flex';
 }
 
 window.closeModal = function() {
@@ -450,7 +537,7 @@ window.onclick = function(event) {
     if (event.target == modal) modal.style.display = "none";
 }
 
-// Navigation Onglets (INCHANGÉ)
+// Navigation Onglets
 window.openTab = function(id, btn) {
     document.querySelectorAll('.tab-content').forEach(d => d.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -488,14 +575,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ... (Le reste de l'initialisation est inchangé) ...
+    // Gestion du bouton de reset
     const resetBtn = document.getElementById('resetBtn');
     if(resetBtn) {
         resetBtn.addEventListener('click', () => {
             if(confirm("Attention : Voulez-vous vraiment effacer la fiche locale actuelle ?")) {
                 allInputs.forEach(el => {
                     if (el.type === 'checkbox') el.checked = false;
-                    if (el.id !== 'char_id' && !el.readOnly) {
+                    // On ne reset pas l'ID et les inputs en lecture seule
+                    if (el.id !== 'char_id' && !el.readOnly) { 
                         el.value = '';
                     }
                 });
@@ -504,7 +592,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     if(input) input.value = 10;
                 });
                 document.getElementById('niveau').value = 1;
-                // 'bonus_maitrise' n'a plus besoin d'être réinitialisé, car il est calculé
                 const magieStatInput = document.getElementById('stat_magie_id');
                 if (magieStatInput) magieStatInput.value = 'int';
                 

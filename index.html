@@ -217,41 +217,44 @@
                     <span title="Maîtrise">M</span>
                     <span>Atk</span>
                     <span>Dégâts</span>
-                </div>
+                    <span style="flex: 0 0 30px;"></span> <span style="flex: 0 0 30px;"></span> </div>
                 <div class="weapon-row">
                     <input type="text" id="w1_nom" placeholder="Arme 1 / Sort 1">
                     <input type="text" id="w1_stat" placeholder="F/D" value="FOR">
                     <input type="checkbox" id="w1_maitrise">
                     <input type="text" id="w1_atk" readonly placeholder="+x">
-                    <input type="text" id="w1_dmg" placeholder="Dégâts + Mod">
-                    <button class="roll-btn" onclick="rollWeaponAttack(1)"><i class="fas fa-dice-d20"></i></button>
+                    <input type="text" id="w1_dmg" placeholder="Ex: 1d8+4">
+                    <button class="roll-btn atk-roll-btn" onclick="rollWeaponAttack(1)" title="Lancer Attaque"><i class="fas fa-dice-d20"></i></button>
+                    <button class="roll-btn dmg-roll-btn" onclick="rollWeaponDamage(1)" title="Lancer Dégâts"><i class="fas fa-bolt"></i></button>
                 </div>
                 <div class="weapon-row">
                     <input type="text" id="w2_nom" placeholder="Arme 2 / Sort 2">
                     <input type="text" id="w2_stat" placeholder="F/D" value="DEX">
                     <input type="checkbox" id="w2_maitrise">
                     <input type="text" id="w2_atk" readonly placeholder="+x">
-                    <input type="text" id="w2_dmg" placeholder="Dégâts + Mod">
-                    <button class="roll-btn" onclick="rollWeaponAttack(2)"><i class="fas fa-dice-d20"></i></button>
+                    <input type="text" id="w2_dmg" placeholder="Ex: 1d6+3">
+                    <button class="roll-btn atk-roll-btn" onclick="rollWeaponAttack(2)" title="Lancer Attaque"><i class="fas fa-dice-d20"></i></button>
+                    <button class="roll-btn dmg-roll-btn" onclick="rollWeaponDamage(2)" title="Lancer Dégâts"><i class="fas fa-bolt"></i></button>
                 </div>
                 <div class="weapon-row">
                     <input type="text" id="w3_nom" placeholder="Arme 3 / Sort 3">
                     <input type="text" id="w3_stat" placeholder="F/D/C" value="">
                     <input type="checkbox" id="w3_maitrise">
                     <input type="text" id="w3_atk" readonly placeholder="+x">
-                    <input type="text" id="w3_dmg" placeholder="Dégâts + Mod">
-                    <button class="roll-btn" onclick="rollWeaponAttack(3)"><i class="fas fa-dice-d20"></i></button>
+                    <input type="text" id="w3_dmg" placeholder="Ex: 2d8">
+                    <button class="roll-btn atk-roll-btn" onclick="rollWeaponAttack(3)" title="Lancer Attaque"><i class="fas fa-dice-d20"></i></button>
+                    <button class="roll-btn dmg-roll-btn" onclick="rollWeaponDamage(3)" title="Lancer Dégâts"><i class="fas fa-bolt"></i></button>
                 </div>
                 <div class="weapon-row">
                     <input type="text" id="w4_nom" placeholder="Arme 4 / Sort 4">
                     <input type="text" id="w4_stat" placeholder="F/D/C" value="">
                     <input type="checkbox" id="w4_maitrise">
                     <input type="text" id="w4_atk" readonly placeholder="+x">
-                    <input type="text" id="w4_dmg" placeholder="Dégâts + Mod">
-                    <button class="roll-btn" onclick="rollWeaponAttack(4)"><i class="fas fa-dice-d20"></i></button>
+                    <input type="text" id="w4_dmg" placeholder="Ex: 1d4+2">
+                    <button class="roll-btn atk-roll-btn" onclick="rollWeaponAttack(4)" title="Lancer Attaque"><i class="fas fa-dice-d20"></i></button>
+                    <button class="roll-btn dmg-roll-btn" onclick="rollWeaponDamage(4)" title="Lancer Dégâts"><i class="fas fa-bolt"></i></button>
                 </div>
             </section>
-
         </div>
 
         <div id="tab-abilities" class="tab-content">
@@ -342,11 +345,15 @@
             <span class="close-btn" onclick="closeModal()">&times;</span>
             <h2 id="modalTitle">Test</h2>
             <div class="roll-animation"><i class="fas fa-dice-d20"></i></div>
-            <div class="roll-details">
+            
+            <div class="roll-details d20-details">
                 <span class="detail-box">d20: <b id="valDie">0</b></span>
                 <span class="math-sign">+</span>
                 <span class="detail-box">Mod: <b id="valMod">0</b></span>
             </div>
+            
+            <div id="damageDetails" class="damage-details-str"></div>
+            
             <div class="roll-total-box">
                 <span class="label">RÉSULTAT</span>
                 <span id="valTotal">0</span>
